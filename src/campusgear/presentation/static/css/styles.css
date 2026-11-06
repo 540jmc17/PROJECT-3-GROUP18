@@ -1,0 +1,387 @@
+/*
+ * Module Name: styles.css
+ *
+ * Description:
+ * Defines the visual appearance and responsive layout of our CampusGear
+ * website, including navigation, buttons, page layouts, equipment
+ * catalog elements, and accessibility styling.
+ *
+ * Inputs:
+ * - HTML elements and CSS classes defined in CampusGear templates.
+ * - Browser viewport dimensions.
+ * - User accessibility preferences.
+ *
+ * Outputs:
+ * - Consistent website colors, fonts, spacing, and layouts.
+ * - Styled navigation menus, buttons, and page components.
+ * - Responsive layouts for different screen sizes.
+ * - Visible keyboard focus indicators and reduced-motion support.
+ *
+ * Implementation Author: Jake Crawford and John Pannell, with substantial code-drafting assistance from ChatGPT Pro-6.
+ * Creation Date: 11/6/26.
+ * Reviewed by: Jake Crawford and John Pannell.
+ * Documentation Author: Jake Crawford and John Pannell.
+ * External Sources / Attribution: Uses standard CSS features and browser
+ * capabilities. ChatGPT Pro-6 drafted the syntax and helped style the design.
+ * Code Origin: Newly written for EECS 581 Project 3 with assistance from ChatGPT to design.
+ * The shared styling supports Sprint 1 Requirement #4 by keeping
+ * the website's navigation consistent across all pages.
+ */
+
+
+/* =========================================================
+   1. GLOBAL COLORS AND THEME
+
+   Defines reusable colors for the entire website.
+   CSS variables allow us to change the website's colors
+   in one location instead of updating every style.
+   ========================================================= */
+
+:root {
+  color-scheme: light;
+  --ink: #17243d;
+  --muted: #58667a;
+  --blue: #1758b5;
+  --blue-dark: #113f88;
+  --border: #dbe3ef;
+  --canvas: #f7f9fd;
+  --white: #ffffff;
+  --focus: #ffb84d;
+}
+
+
+/* =========================================================
+   2. BASE STYLING AND ACCESSIBILITY
+
+   Sets the default appearance of the website, including
+   fonts, page spacing, and text colors.
+
+   Also includes accessibility features to help keyboard
+   users navigate the website.
+   ========================================================= */
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--ink); background: var(--white); line-height: 1.6; }
+
+a { color: inherit; }
+
+/* Displays a visible outline when navigating with a keyboard. */
+a:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+
+/* Keeps website content centered with a maximum width. */
+.shell { width: min(1120px, calc(100% - 40px)); margin-inline: auto; }
+
+/* Allows keyboard users to skip the navigation menu
+   and move directly to the main page content. */
+.skip-link { position: absolute; z-index: 20; top: -80px; left: 14px; background: var(--white); color: var(--blue-dark); padding: 10px 16px; border: 2px solid var(--blue); border-radius: 6px; }
+
+.skip-link:focus { top: 12px; }
+
+
+/* =========================================================
+   3. WEBSITE HEADER AND BRANDING
+
+   Controls the appearance of the top header, including
+   the CampusGear logo and its positioning.
+
+   These elements are shared across all website pages
+   through the base.html template.
+   ========================================================= */
+
+.site-header { border-bottom: 1px solid var(--border); background: var(--white); }
+
+.header-inner { min-height: 84px; display: flex; align-items: center; gap: 38px; }
+
+/* Styles the CampusGear name displayed in the header. */
+.brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-size: 1.35rem; font-weight: 800; letter-spacing: -0.035em; white-space: nowrap; }
+
+/* Creates the blue square containing the CG logo. */
+.brand-mark { display: grid; place-items: center; border-radius: 12px; background: var(--blue); color: var(--white); font-size: .78rem; letter-spacing: -.04em; width: 42px; height: 42px; }
+
+.brand-accent { color: var(--blue); }
+
+
+/* =========================================================
+   4. NAVIGATION MENU - REQUIREMENT #4
+
+   Styles the navigation links for Home, Equipment Catalog,
+   and About.
+
+   The active link is highlighted to show users which
+   page they are currently viewing.
+   ========================================================= */
+
+.primary-nav { display: flex; align-items: center; gap: 6px; margin-right: auto; }
+
+/* Defines the default appearance of navigation links. */
+.nav-link { border-radius: 9px; padding: 9px 13px; text-decoration: none; color: var(--muted); font-weight: 650; font-size: .93rem; }
+
+/* Changes the appearance when a user hovers over a link. */
+.nav-link:hover { background: var(--canvas); color: var(--blue-dark); }
+
+/* Highlights the currently selected page in the menu. */
+.nav-link.is-active { background: #ecf3ff; color: var(--blue-dark); }
+
+
+/* =========================================================
+   5. BUTTON STYLING
+
+   Creates consistent button designs throughout CampusGear.
+
+   Includes primary, secondary, outline, and smaller buttons.
+   Hover effects provide visual feedback to users.
+   ========================================================= */
+
+.button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: .95rem; border: 1px solid transparent; transition: background .15s ease, transform .15s ease; }
+
+.button:hover { transform: translateY(-1px); }
+
+/* Smaller button used for actions such as Sign in. */
+.button-small { min-height: 40px; padding: 7px 16px; font-size: .9rem; }
+
+/* Outline button style used in the website header. */
+.button-outline { color: var(--blue); border-color: #c5d6f3; background: var(--white); white-space: nowrap; }
+
+.button-outline:hover { background: #f1f6ff; }
+
+/* Primary buttons use the main CampusGear blue color. */
+.button-primary { background: var(--blue); color: var(--white); }
+
+.button-primary:hover { background: var(--blue-dark); }
+
+/* Secondary buttons use a white background and border. */
+.button-secondary { background: var(--white); color: var(--blue-dark); border-color: var(--border); }
+
+.button-secondary:hover { background: var(--canvas); }
+
+
+/* =========================================================
+   6. HOMEPAGE HERO SECTION
+
+   Styles the main welcome section at the top of home.html.
+
+   Controls the background gradient, page spacing,
+   introductory text, and navigation buttons.
+   ========================================================= */
+
+main { flex: 1; }
+
+.hero { background: linear-gradient(140deg, #f5f9ff 5%, #eef4ff 100%); border-bottom: 1px solid var(--border); }
+
+.hero-inner { display: grid; grid-template-columns: 1.1fr .9fr; align-items: center; gap: 72px; min-height: 490px; padding-block: 72px; }
+
+/* Styles the small welcome label above the main heading. */
+.eyebrow { display: inline-flex; gap: 9px; align-items: center; font-size: .78rem; font-weight: 800; color: var(--blue); letter-spacing: .12em; text-transform: uppercase; }
+
+.eyebrow-dot { width: 8px; height: 8px; background: var(--blue); border-radius: 50%; }
+
+
+/* =========================================================
+   7. HEADINGS AND HOMEPAGE TEXT
+
+   Defines text sizes, spacing, and colors.
+
+   The clamp() function allows heading sizes to adjust
+   automatically depending on the screen width.
+   ========================================================= */
+
+h1,h2,h3,p { margin-top: 0; }
+
+h1 { font-size: clamp(2.35rem, 5vw, 4.3rem); line-height: 1.12; letter-spacing: -.055em; margin: 23px 0 22px; }
+
+h2 { font-size: clamp(1.7rem, 3vw, 2.2rem); line-height: 1.25; letter-spacing: -.035em; }
+
+h3 { font-size: 1.12rem; letter-spacing: -.015em; }
+
+.hero-copy > p:not(.availability-note) { color: var(--muted); font-size: 1.1rem; max-width: 550px; }
+
+/* Highlights part of the homepage heading in blue. */
+.headline-accent { color: var(--blue); }
+
+/* Arranges homepage navigation buttons next to each other. */
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+
+/* Styles the Sprint 1 development notice. */
+.availability-note { color: var(--muted); font-size: .83rem; margin: 18px 0 0; max-width: 500px; }
+
+
+/* =========================================================
+   8. OPTIONAL HOMEPAGE VISUAL
+
+   Provides styling for a decorative preview panel
+   that can be displayed in the homepage hero section.
+
+   Includes its border, shadow, icon, and visual elements.
+   These styles are available if the matching HTML is used.
+   ========================================================= */
+
+.hero-visual { border: 1px solid #d1e1f9; box-shadow: 0 24px 65px rgba(14, 54, 110, .12); background: var(--white); border-radius: 18px; overflow: hidden; transform: rotate(1.5deg); }
+
+.visual-top { display: flex; justify-content: space-between; padding: 13px 20px; border-bottom: 1px solid var(--border); color: #7887a0; font-size: .71rem; letter-spacing: .08em; }
+
+.visual-dots { color: #ff8a73; letter-spacing: .2em; }
+
+.visual-body { padding: 42px 35px; text-align: center; background: radial-gradient(circle at 50% 30%, #f0f6ff, #fff 75%); }
+
+.visual-icon { background: var(--blue); display: grid; place-items: center; width: 68px; height: 68px; margin: 0 auto 22px; border-radius: 18px; font-size: 1.15rem; font-weight: 800; color: var(--white); }
+
+.visual-heading { font-size: clamp(1.65rem, 3vw, 2.4rem); font-weight: 800; letter-spacing: -.045em; line-height: 1.2; }
+
+.visual-bars { display: flex; gap: 10px; justify-content: center; margin: 26px 0; }
+
+.visual-bars span { width: 54px; height: 8px; background: #bed3f5; border-radius: 99px; }
+
+.visual-bars span:nth-child(2) { background: #6c9edb; }
+
+.visual-chip { display: inline-flex; padding: 8px 16px; border-radius: 99px; background: #ecf3ff; color: var(--blue-dark); font-size: .8rem; font-weight: 700; }
+
+
+/* =========================================================
+   9. HOMEPAGE FEATURE CARDS
+
+   Styles the three clickable cards on the homepage:
+   Equipment Catalog, About CampusGear, and Account Access.
+
+   The grid places the cards side by side on larger screens
+   and adjusts their layout on smaller screens.
+   ========================================================= */
+
+.section { padding: 72px 0 90px; }
+
+.section-kicker { color: var(--blue); font-size: .8rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+
+/* Creates a three-column layout for the homepage cards. */
+.feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; margin-top: 30px; }
+
+/* Controls the appearance and spacing of each card. */
+.feature-card { display: flex; flex-direction: column; min-height: 260px; border: 1px solid var(--border); border-radius: 16px; padding: 28px; text-decoration: none; transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+
+/* Adds movement and a shadow when users hover over a card. */
+.feature-card:hover { transform: translateY(-4px); border-color: #99bbed; box-shadow: 0 12px 28px rgba(19,54,100,.08); }
+
+.feature-card p { color: var(--muted); font-size: .94rem; }
+
+/* Styles the numbered icons displayed inside each card. */
+.feature-icon { display: grid; place-items: center; width: 46px; height: 46px; margin-bottom: 22px; border-radius: 12px; background: #eaf2ff; color: var(--blue); font-size: .87rem; font-weight: 900; }
+
+/* Styles the navigation text at the bottom of each card. */
+.feature-link { display: inline-block; margin-top: auto; color: var(--blue); font-size: .92rem; font-weight: 800; }
+
+
+/* =========================================================
+   10. INNER PAGE HEADERS
+
+   Styles the headers used by the Equipment Catalog,
+   About, and Sign in pages.
+
+   Keeps the appearance consistent across the website.
+   ========================================================= */
+
+.page-header { background: var(--canvas); padding: 70px 0 58px; border-bottom: 1px solid var(--border); }
+
+.page-header h1 { font-size: clamp(2.1rem, 4vw, 3.4rem); max-width: 850px; }
+
+.page-header p { color: var(--muted); font-size: 1.1rem; max-width: 730px; }
+
+
+/* =========================================================
+   11. PLACEHOLDER PAGE MESSAGES
+
+   Styles the temporary messages displayed on the
+   Equipment Catalog and Sign in pages.
+
+   These messages explain that certain features
+   are still being integrated by other team members.
+   ========================================================= */
+
+.empty-state { padding: 65px 25px; border: 1px dashed #b8cce7; border-radius: 18px; text-align: center; background: #fbfcff; }
+
+/* Styles the decorative CG icon above each message. */
+.empty-icon { display: grid; place-items: center; margin: 0 auto 18px; width: 68px; height: 68px; border-radius: 17px; background: #e8f1ff; color: var(--blue); font-weight: 850; }
+
+.empty-state h2 { font-size: 1.65rem; }
+
+.empty-state p { max-width: 550px; margin: 0 auto 22px; color: var(--muted); }
+
+
+/* =========================================================
+   12. ABOUT PAGE TEXT
+
+   Limits the width of longer paragraphs to make
+   the information easier for visitors to read.
+   ========================================================= */
+
+.narrow-copy { max-width: 840px; }
+
+.narrow-copy p { color: var(--muted); }
+
+
+/* =========================================================
+   13. WEBSITE FOOTER
+
+   Styles the footer that appears at the bottom
+   of every CampusGear page.
+
+   Displays the project name and Team 18 information.
+   ========================================================= */
+
+.site-footer { border-top: 1px solid var(--border); background: var(--canvas); }
+
+.footer-inner { padding-block: 25px; display: flex; justify-content: space-between; align-items: center; gap: 15px; color: var(--muted); font-size: .87rem; }
+
+
+/* =========================================================
+   14. RESPONSIVE DESIGN - TABLETS AND SMALLER SCREENS
+
+   Adjusts the website layout when the screen width
+   is 880 pixels or smaller.
+
+   Navigation links can scroll horizontally, the homepage
+   layout becomes a single column, and feature cards stack.
+   ========================================================= */
+
+@media (max-width: 880px) {
+  .header-inner { flex-wrap: wrap; gap: 10px 18px; padding-block: 16px; }
+  .primary-nav { order: 3; width: 100%; overflow-x: auto; }
+  .header-inner > .button { margin-left: auto; }
+  .hero-inner { grid-template-columns: 1fr; gap: 32px; padding-block: 54px; }
+  .hero-visual { max-width: 580px; width: 100%; justify-self: center; transform: none; }
+  .feature-grid { grid-template-columns: 1fr; }
+  .feature-card { min-height: 220px; }
+}
+
+
+/* =========================================================
+   15. RESPONSIVE DESIGN - MOBILE PHONES
+
+   Adjusts spacing, logo sizing, navigation links,
+   and the footer when screens are 520 pixels or smaller.
+   ========================================================= */
+
+@media (max-width: 520px) {
+  .shell { width: min(100% - 28px, 1120px); }
+  .brand { font-size: 1.2rem; }
+  .brand-mark { width: 38px; height: 38px; }
+  .nav-link { padding: 8px 10px; white-space: nowrap; }
+  .section { padding: 50px 0; }
+  .page-header { padding: 50px 0 38px; }
+  .footer-inner { flex-direction: column; align-items: flex-start; }
+}
+
+
+/* =========================================================
+   16. ACCESSIBILITY - REDUCED MOTION
+
+   Respects users who prefer reduced animation.
+
+   Removes smooth scrolling and minimizes transition
+   effects for a more comfortable browsing experience.
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,*::before,*::after { transition-duration: 0.01ms !important; }
+}

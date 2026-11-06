@@ -1,0 +1,182 @@
+<!--
+Module Name: home.html
+
+Description:
+Provides the CampusGear homepage. Introduces the equipment
+borrowing application and provides navigation to the Equipment
+Catalog, About page, and account sign-in page.
+
+Inputs:
+- Shared page layout inherited from base.html.
+- Page title supplied through the Jinja title block.
+- Flask route endpoints for the catalog, about, and login pages.
+
+Outputs:
+- CampusGear welcome heading and introductory information.
+- Links to the main sections of the website.
+- Homepage feature cards describing CampusGear functionality.
+
+Interactions:
+- Extends base.html to reuse the shared website layout,
+  navigation menu, and footer.
+- Uses Flask url_for() to generate links to application routes.
+- Uses shared CSS classes to style the homepage and feature cards.
+
+Implementation Author: Jake Crawford and John Pannell, with substantial code-drafting assistance from ChatGPT Pro-6.
+Creation Date: 11/6/26.
+Reviewed by: Jake Crawford and John Pannell.
+Documentation Author: Jake Crawford and John Pannell.
+External Sources / Attribution: Uses standard HTML, CSS, Flask,
+and Jinja template functionality. 
+Code Origin: Newly written for EECS 581 Project 3 with assistance from ChatGPT to handle the layout.
+-->
+
+{# Use the shared website layout from base.html. #}
+{% extends "base.html" %}
+
+{# Set the browser tab title to Home. #}
+{% block title %}Home{% endblock %}
+
+{# Begin the main content displayed on the homepage. #}
+{% block content %}
+
+{# HERO SECTION
+   This is the first section visitors see.
+   It introduces CampusGear and provides buttons
+   to navigate to the Equipment Catalog and About pages.
+#}
+<section class="hero">
+  <div class="shell hero-inner">
+    <div class="hero-copy">
+
+      {# Small welcome label displayed above the main heading. #}
+      <span class="eyebrow">
+        <span class="eyebrow-dot"></span>
+        Welcome to CampusGear
+      </span>
+
+      {# Main homepage heading that introduces the website. #}
+      <h1>
+        Find the equipment<br>
+        <span class="headline-accent">you need for class.</span>
+      </h1>
+
+      {# Brief description explaining the purpose of CampusGear. #}
+      <p>
+        CampusGear is a home for discovering shared equipment
+        and connecting students and staff with campus resources.
+      </p>
+
+      {# Homepage navigation buttons.
+         url_for() connects each button to its Flask route
+         defined in routes.py.
+      #}
+      <div class="hero-actions">
+
+        {# Opens the Equipment Catalog page. #}
+        <a class="button button-primary"
+           href="{{ url_for('site.catalog') }}">
+          Explore Equipment
+          <span aria-hidden="true">&rarr;</span>
+        </a>
+
+        {# Opens the About CampusGear page. #}
+        <a class="button button-secondary"
+           href="{{ url_for('site.about') }}">
+          Learn about CampusGear
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{# FEATURE SECTION
+   Displays three clickable cards that help visitors
+   navigate to the main sections of CampusGear.
+
+   These cards support Sprint 1 Requirement #4
+   by providing additional website navigation.
+#}
+<section class="section">
+  <div class="shell">
+    <p class="section-kicker">Explore the site</p>
+
+    <h2>Everything starts here.</h2>
+
+    {# Grid container that organizes the three feature cards.
+       The CSS file controls their layout and appearance.
+    #}
+    <div class="feature-grid">
+
+      {# CARD 1 - Equipment Catalog
+         Links users to the catalog page.
+         Actual equipment listings will be added by
+         the equipment catalog team.
+      #}
+      <a class="feature-card"
+         href="{{ url_for('site.catalog') }}">
+        <span class="feature-icon" aria-hidden="true">01</span>
+
+        <h3>Equipment Catalog</h3>
+
+        <p>
+          Open the catalog section. Inventory listings
+          will appear when the catalog feature is connected.
+        </p>
+
+        <span class="feature-link">
+          View catalog
+          <span aria-hidden="true">&rarr;</span>
+        </span>
+      </a>
+
+      {# CARD 2 - About CampusGear
+         Links users to information about the project
+         and its purpose for students and staff.
+      #}
+      <a class="feature-card"
+         href="{{ url_for('site.about') }}">
+        <span class="feature-icon" aria-hidden="true">02</span>
+
+        <h3>About CampusGear</h3>
+
+        <p>
+          See what this project aims to provide to students
+          and campus staff.
+        </p>
+
+        <span class="feature-link">
+          Learn more
+          <span aria-hidden="true">&rarr;</span>
+        </span>
+      </a>
+
+      {# CARD 3 - Account Access
+         Links users to the login placeholder.
+         The login and authentication system will
+         be implemented by the assigned team.
+      #}
+      <a class="feature-card"
+         href="{{ url_for('site.login') }}">
+        <span class="feature-icon" aria-hidden="true">03</span>
+
+        <h3>Account Access</h3>
+
+        <p>
+          Visit the sign-in area. Secure student and staff
+          login is being added separately.
+        </p>
+
+        <span class="feature-link">
+          View account page
+          <span aria-hidden="true">&rarr;</span>
+        </span>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+{# End of the homepage content block. #}
+{% endblock %}
