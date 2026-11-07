@@ -1,11 +1,9 @@
 <!--
 Name: staff_home.html
-Description: Placeholder Staff Interface shown after a staff member signs in.
-             The Requirement 7 owners will add the equipment management
-             options here.
+Description: Equipment management options for signed-in staff.
 Programmer: Zema Samuel
 Dates: November 7, 2026
-Revisions: None
+Revisions: November 7, 2026. Req 7 menu options, Pranav Reddy with Codex assistance.
 Preconditions: Rendered by presentation/staff.py for a signed-in staff member;
                `user` holds the id, role and name from the session.
 Postconditions: Displays a greeting and a link to the catalog.
@@ -26,10 +24,16 @@ Errors: Jinja2 autoescaping is on for all interpolated values.
     <div class="feature-grid">
       <a class="feature-card" href="{{ url_for('site.catalog') }}">
         <span class="feature-icon" aria-hidden="true">01</span>
-        <h3>Equipment Catalog</h3>
+        <h3>View inventory</h3>
         <p>Review the equipment inventory.</p>
         <span class="feature-link">View catalog <span aria-hidden="true">&rarr;</span></span>
       </a>
+      {# Cam: replace this disabled option with a link to the Req 2 form
+         once Karim/Ahmed supply its Flask GET endpoint. #}
+      <div class="feature-card">
+        <h3>Add equipment</h3>
+        <button type="button" disabled>Registration unavailable</button>
+      </div>
     </div>
   </div>
 </section>

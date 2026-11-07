@@ -1,6 +1,6 @@
-# CampusGear — Req 1 database handoff
+# CampusGear — Req 1 database and Req 7 menu handoff
 
-For Pranav/Cameren, Karim/Ahmed, Jake/John, and Zema/Nate. Updated November 5, 2026.
+For Pranav/Cameren, Karim/Ahmed, Jake/John, and Zema/Nate. Updated November 7, 2026.
 
 Temporary team communication document: remove before final submission and remove
 its README link. Keep the final application setup instructions in README.md.
@@ -15,9 +15,7 @@ its README link. Keep the final application setup instructions in README.md.
 
 ## Scope and ownership
 
-This handoff describes the Python interface prepared on `sprint1-db-roles`.
-The shared integration target is `sprint-1`. This contribution implements Req 1
-only. It contains no Flask app, frontend, login, or Req 7 role-display implementation.
+Pranav/Cam work on the database and role menus on `sprint1-db-roles`. Jake’s shared integration branch is `sprint1`.
 
 | Requirement | Owners | What our layer supplies | What the feature owners implement |
 | --- | --- | --- | --- |
@@ -27,7 +25,7 @@ only. It contains no Flask app, frontend, login, or Req 7 role-display implement
 | 4 — Skeleton/navigation | Jake/John | Database setup instructions and Python imports | Shared Flask application, layout, navigation and route names |
 | 5 — Login/logout | Zema/Nate | User storage, role/password_hash columns, connection for account lookup | Account provisioning, hashing/verification, login/logout, session handling |
 | 6 — Privacy/access | Zema/Nate | User IDs and record relationships for ownership checks | Server-side authentication, authorization, private-record filtering and safe responses |
-| 7 — Role-specific display | Pranav/Cameren | Stored user role only; UI work is separate | Integrate with the shared layout and authenticated role supplied by the login team |
+| 7 — Role-specific display | Pranav/Cameren | Student and staff menus after login | Link the staff registration form and verify both menus |
 
 ## Connection map — Cam and the feature teams
 
@@ -43,7 +41,7 @@ The browser never calls SQLite or imports Python. The full flow is:
   verify the password hash, and establish the authenticated user ID and role.
 - Jake/John's navigation links to those feature routes in the shared Flask app.
 - Pranav/Cam supply the database files and help everyone use the same database path.
-  Later Req 7 work connects the authenticated role to options in the shared layout.
+  For Req 7, see Cam’s wiring instructions below.
 
 Nothing automatically wires a form to these functions. Feature owners write those
 handlers. Before integrating, share route names and the authenticated-user access
@@ -162,8 +160,7 @@ status correctly. Allowed equipment statuses are `available`, `reserved`,
 `checked_out`, and `maintenance`. This helper reads current status. Future date
 conflicts and reservation availability need reservation business logic.
 
-Send Pranav/Cam the form/catalog route names and branch/files when ready so the
-role-specific links can target the actual pages.
+Send Cam the Flask endpoint name that opens the registration form when it is ready.
 
 ## Requirement 4 — Jake/John skeleton and navigation
 
@@ -255,12 +252,13 @@ student calling the staff equipment endpoint directly, and logged-out requests
 to protected pages. The generic database helpers provide storage access to trusted
 backend callers and perform no request-level authorization themselves.
 
-## Requirement 7 — later work, outside this push
+## Requirement 7 — Cam’s remaining wiring
 
-The database stores `users.role` as `student` or `staff`. Pranav/Cam will later use
-the authenticated role from Zema/Nate to show the correct options in Jake/John's
-layout and link to Karim/Ahmed's routes. That UI is not included here. Backend
-handlers must enforce permissions independently of which options are visible.
+Student login already shows **Browse equipment to borrow** (catalog) and **My reservations & loans** (the signed-in student's records). Staff login shows **View inventory** (catalog). The staff **Add equipment** option is currently disabled.
+
+1. Ask Karim/Ahmed for the Flask endpoint name that opens their Add Equipment form with a GET request, including its blueprint prefix if it has one. Make sure their route is available in the integrated app.
+2. In [staff_home.html](src/campusgear/presentation/templates/staff_home.html), replace the disabled Add equipment card with a link. Copy the View inventory link pattern and pass their endpoint name to `url_for()`. Karim/Ahmed’s form handles the save and their Flask handler checks staff permission.
+3. Log in as a student and open the catalog and personal records links. Confirm Add equipment is absent. Log out, sign in as staff, and click Add equipment. It should open Karim/Ahmed’s form. The menu test checks which options appear; following the link verifies the wiring.
 
 ## Reservation and loan storage reference
 
