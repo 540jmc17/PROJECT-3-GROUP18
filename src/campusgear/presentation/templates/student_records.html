@@ -1,0 +1,57 @@
+<!--
+Name: student_records.html
+Description: Private records page showing one student's reservations and
+             loans (Requirement 6). Reached only through the
+             owner-or-staff-protected route; it never displays a password
+             hash.
+Programmer: Zema Samuel
+Dates: November 7, 2026
+Revisions: None
+Preconditions: Rendered by presentation/student.py with `student` (id, name,
+               email), `reservations` and `loans` (lists of dictionaries).
+Postconditions: Displays two tables, or an empty-state sentence for each
+                table that has no rows.
+Errors: Jinja2 autoescaping is on for all interpolated values.
+-->
+{% extends "base.html" %}
+{% block title %}Records for {{ student.name }}{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div class="shell">
+    <span class="eyebrow">CampusGear / Private records</span>
+    <h1>Records for {{ student.name }}</h1>
+    <p>{{ student.email }}</p>
+  </div>
+</section>
+<section class="section">
+  <div class="shell">
+    <h2>Reservations</h2>
+    {% if reservations %}
+    <table class="data-table">
+      <thead><tr><th>Equipment</th><th>Asset ID</th><th>Pickup</th><th>Return</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for r in reservations %}
+        <tr><td>{{ r.equipment_name }}</td><td>{{ r.asset_id }}</td><td>{{ r.pickup_date }}</td><td>{{ r.return_date }}</td><td>{{ r.status }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>No reservations yet.</p>
+    {% endif %}
+
+    <h2>Loans</h2>
+    {% if loans %}
+    <table class="data-table">
+      <thead><tr><th>Equipment</th><th>Asset ID</th><th>Checked out</th><th>Due</th><th>Returned</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for l in loans %}
+        <tr><td>{{ l.equipment_name }}</td><td>{{ l.asset_id }}</td><td>{{ l.checkout_date }}</td><td>{{ l.due_date }}</td><td>{{ l.actual_return_date or "-" }}</td><td>{{ l.status }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>No loans yet.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

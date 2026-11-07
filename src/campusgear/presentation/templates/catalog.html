@@ -1,0 +1,88 @@
+<!--
+Module Name: catalog.html
+
+Description:
+Provides the Equipment Catalog page for CampusGear.
+Displays an introductory heading and a placeholder indicating
+that database-backed equipment listings and availability
+information will be integrated into this page.
+
+Inputs:
+- Base HTML layout inherited from base.html.
+- Page title supplied through the Jinja title block.
+- Equipment catalog route registered as site.catalog.
+- Homepage route registered as site.home.
+
+Outputs:
+- Equipment Catalog page heading and introduction.
+- Placeholder message for the catalog integration.
+- Navigation link returning users to the homepage.
+
+Interactions:
+- Extends base.html to reuse the shared website layout,
+  navigation menu, and footer.
+- Uses Flask url_for() to generate the homepage link.
+- Uses shared CSS classes to maintain consistent page styling.
+
+Implementation Author: Jake Crawford and John Pannell, with substantial code-drafting assistance from ChatGPT Pro-6.
+Creation Date: 11/6/26.
+Reviewed by: Jake Crawford and John Pannell.
+Documentation Author: Jake Crawford and John Pannell.
+External Sources / Attribution: Uses standard HTML, CSS, Flask,
+and Jinja template functionality. 
+Code Origin: Newly written for EECS 581 Project 3 with assistance from ChatGPT to handle the layout.
+-->
+
+{# Use the shared website layout from base.html. #}
+{% extends "base.html" %}
+
+{# Set the browser tab title to Equipment Catalog. #}
+{% block title %}Equipment Catalog{% endblock %}
+
+{# Begin the Equipment Catalog page content. #}
+{% block content %}
+
+{# PAGE HEADER
+   Displays the title and introduction to the catalog.
+   The shared CSS controls the header's appearance.
+#}
+<section class="page-header">
+  <div class="shell">
+    <span class="eyebrow">CampusGear / Browse</span>
+
+    <h1>Equipment Catalog</h1>
+
+    <p>Find campus resources in one place. The equipment listings will be populated from the database when the catalog feature is integrated.</p>
+  </div>
+</section>
+
+{# CATALOG PLACEHOLDER
+   This section displays a temporary message until
+   the equipment team connects real inventory data.
+
+   The role="status" attribute identifies this section
+   as a status message for assistive technologies.
+#}
+<section class="section">
+  <div class="shell">
+    <div class="empty-state" role="status">
+
+      {# Decorative CampusGear icon displayed above the message. #}
+      <span class="empty-icon" aria-hidden="true">CG</span>
+
+      {# Inform users that catalog integration is in progress. #}
+      <h2>Catalog integration in progress</h2>
+
+      <p>The page and navigation are ready. The equipment team will connect real inventory and availability here for Requirement #3.</p>
+
+      {# Navigation button that returns users to the homepage.
+         url_for() connects to the home route in routes.py.
+      #}
+      <a class="button button-secondary" href="{{ url_for('site.home') }}">Back to home</a>
+
+    </div>
+  </div>
+</section>
+
+{# End of the Equipment Catalog page content. #}
+{% endblock %}

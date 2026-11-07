@@ -1,0 +1,123 @@
+<!--
+Module Name: about.html
+
+Description:
+Provides the About page for CampusGear. Introduces the purpose of
+the application, describes its planned student and staff functionality,
+and explains the current website skeleton.
+
+Inputs:
+- Base HTML layout inherited from base.html.
+- Page title supplied through the Jinja title block.
+- Catalog route registered as site.catalog.
+
+Outputs:
+- About page heading and project description.
+- Information about planned CampusGear functionality.
+- Navigation link to the Equipment Catalog.
+
+Interactions:
+- Extends base.html to reuse the shared website layout and navigation.
+- Uses the site.catalog route to navigate to the Equipment Catalog.
+
+Implementation Author: Jake Crawford and John Pannell, with substantial code-drafting assistance from ChatGPT Pro-6.
+Creation Date: 11/6/26.
+Reviewed by: Jake Crawford and John Pannell.
+Documentation Author: Jake Crawford and John Pannell.
+External Sources / Attribution: Uses standard HTML and Flask/Jinja
+template features. 
+Code Origin: Newly written for EECS 581 Project 3 with assistance from ChatGPT to handle the layout.
+-->
+
+{# Use the shared website layout from base.html.
+   This includes the navigation menu, header, and footer. #}
+{% extends "base.html" %}
+
+{# Set the browser tab title to About. #}
+{% block title %}About{% endblock %}
+
+{# Begin the About page content. #}
+{% block content %}
+
+{# PAGE HEADER
+   Displays the About page heading and briefly
+   introduces the purpose of CampusGear.
+#}
+<section class="page-header">
+  <div class="shell">
+    <span class="eyebrow">CampusGear / About</span>
+
+    <h1>Shared campus equipment, simplified.</h1>
+
+    <p>CampusGear is an equipment borrowing project, designed to bring the student browsing experience and staff equipment workflows together.</p>
+  </div>
+</section>
+
+{# PROJECT INFORMATION SECTION
+   Explains what the CampusGear team is building
+   and identifies which features are being developed
+   as separate team assignments.
+
+   The narrow-copy class limits the text width
+   to improve readability.
+#}
+<section class="section">
+  <div class="shell narrow-copy">
+
+    {# Describes the student and staff functionality
+       planned for CampusGear.
+    #}
+    <div class="narrow-copy">
+
+    <h2>What is CampusGear?</h2>
+
+    <p>
+        CampusGear is a website being developed for KU students and staff
+        to make borrowing university equipment easier. Students will be
+        able to find items such as laptops, cameras, calculators,
+        microphones, and other equipment used for classes and projects.
+    </p>
+
+    <h3>For Students</h3>
+
+    <p>
+        Students will be able to browse available equipment, choose
+        reservation dates, and keep track of their reservations and
+        borrowed items. They will also be able to view their borrowing
+        history and return deadlines.
+    </p>
+
+    <h3>For Staff</h3>
+
+    <p>
+        Staff members will be able to add and update equipment,
+        manage reservations, and check items in and out. They will
+        also be able to report damaged equipment and manage maintenance
+        requests.
+    </p>
+
+    <h3>Managing Equipment</h3>
+
+    <p>
+        Each item will have a status showing whether it is available,
+        reserved, checked out, or under maintenance. A staff dashboard
+        will provide information about equipment availability,
+        current checkouts, and overdue returns.
+    </p>
+
+    <h3>Our Goal: give students and staff one organized place
+        to manage shared university equipment.</h3>
+
+  </div>
+
+    {# Navigation button that opens the Equipment Catalog.
+       url_for() connects the button to the catalog route
+       defined in routes.py.
+    #}
+    <a class="button button-primary" href="{{ url_for('site.catalog') }}">Visit the catalog <span aria-hidden="true">&rarr;</span></a>
+
+  </div>
+</section>
+
+{# End of the About page content. #}
+{% endblock %}

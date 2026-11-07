@@ -1,0 +1,124 @@
+<!--
+Module Name: base.html
+
+Description:
+Provides the shared HTML layout for the CampusGear website.
+Defines the browser metadata, page title, navigation menu,
+CampusGear branding, main content area, and website footer.
+Other page templates extend this file to maintain a consistent
+appearance and navigation structure throughout the application.
+
+Inputs:
+- Page title supplied through the Jinja title block.
+- Page content supplied through the Jinja content block.
+- Active page identifier supplied by the Presentation Layer.
+- Flask route endpoints for the homepage, catalog, about page,
+  and login page.
+
+Outputs:
+- Shared HTML structure displayed across CampusGear pages.
+- Navigation links to the main website sections.
+- Active navigation indicators for the current page.
+- A shared content area and website footer.
+
+Interactions:
+- Extended by individual page templates using Jinja inheritance.
+- Uses Flask url_for() to generate navigation destinations.
+- Uses styles.css to control the website's visual appearance.
+
+Implementation Author: Jake Crawford and John Pannell, with substantial code-drafting assistance from ChatGPT Pro-6.
+Creation Date: 11/6/26.
+Reviewed by: Jake Crawford and John Pannell.
+Documentation Author: Jake Crawford and John Pannell.
+External Sources / Attribution: Uses standard HTML, CSS, Flask,
+and Jinja template functionality.
+Code Origin: Newly written for EECS 581 Project 3 with assistance from ChatGPT to handle the layout.
+-->
+
+<!doctype html>
+<html lang="en">
+
+<head>
+  {# Define the character encoding and make the website responsive
+     so it displays properly on computers, tablets, and phones. #}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  {# Provide a short description of CampusGear for search engines. #}
+  <meta name="description" content="CampusGear helps students discover campus equipment and staff manage shared resources.">
+
+  {# Set the browser tab title. Individual pages can customize
+     their titles using the Jinja block below. #}
+  <title>{% block title %}CampusGear{% endblock %} | CampusGear</title>
+
+  {# Load the shared CSS file that controls the website's appearance. #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+  {# Accessibility feature that allows keyboard users to skip
+     directly to the main page content. #}
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  {# Shared website header containing the CampusGear logo,
+     navigation menu, and student/staff sign-in link. #}
+  <header class="site-header">
+    <div class="shell header-inner">
+
+      {# CampusGear branding. Clicking the logo returns
+         users to the homepage. #}
+      <a class="brand" href="{{ url_for('site.home') }}" aria-label="CampusGear home">
+        <span class="brand-mark" aria-hidden="true">CG</span>
+        <span>Campus<span class="brand-accent">Gear</span></span>
+      </a>
+
+      {# Main navigation menu for Sprint 1 Requirement #4.
+         Each link connects to a route defined in routes.py.
+
+         The active_page variable highlights the current page.
+         aria-current helps screen readers identify the active page. #}
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <a href="{{ url_for('site.home') }}" class="nav-link{% if active_page == 'home' %} is-active{% endif %}"{% if active_page == 'home' %} aria-current="page"{% endif %}>Home</a>
+        <a href="{{ url_for('site.catalog') }}" class="nav-link{% if active_page == 'catalog' %} is-active{% endif %}"{% if active_page == 'catalog' %} aria-current="page"{% endif %}>Equipment Catalog</a>
+        <a href="{{ url_for('site.about') }}" class="nav-link{% if active_page == 'about' %} is-active{% endif %}"{% if active_page == 'about' %} aria-current="page"{% endif %}>About</a>
+      </nav>
+
+      {# Sign-in area for students and staff.
+         The login team will replace this placeholder with
+         authenticated account features in Requirement #5. #}
+      {% block account_actions %}
+        {# Requirement #5: shows Sign in when signed out, or the account links
+           and a POST logout form (with CSRF token) when signed in. #}
+        {% if current_user %}
+          <div class="account-actions">
+            <a class="button button-small button-outline" href="{{ account_home_url }}">{{ current_user.name }}</a>
+            <form class="inline-form" method="post" action="{{ url_for('auth.logout') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="button button-small button-outline" type="submit">Log out</button>
+            </form>
+          </div>
+        {% else %}
+          <a class="button button-small button-outline" href="{{ url_for('auth.login') }}"{% if active_page == 'login' %} aria-current="page"{% endif %}>Sign in</a>
+        {% endif %}
+      {% endblock %}
+
+    </div>
+  </header>
+
+  {# Main content area.
+     Other HTML pages extend base.html and insert their
+     individual content into this block. #}
+  <main id="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  {# Shared footer displayed at the bottom of every page. #}
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <span><strong>CampusGear</strong></span>
+      <span>Built for KU students</span>
+    </div>
+  </footer>
+
+</body>
+</html>
