@@ -40,7 +40,7 @@ class DatabaseTests(unittest.TestCase):
         # A new Python process reads what seed saved and checks an invalid reference.
         subprocess.run([sys.executable, '-m', 'campusgear.demo', '--verify', str(self.path)],
                        check=True, capture_output=True, text=True,
-                       cwd=Path(__file__).resolve().parent.parent)
+                       cwd=Path(__file__).resolve().parent.parent / 'src')  # package lives in src/
 
     def test_invalid_relationships_are_rejected(self):
         # Try a missing user, then a missing item, with otherwise valid data.

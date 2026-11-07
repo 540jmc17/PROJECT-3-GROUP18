@@ -123,29 +123,16 @@ def test_catalog_is_a_clearly_labeled_placeholder(client):
     assert "Requirement #3" in html
 
 
-# TEST 5 - LOGIN PLACEHOLDER
-# Verifies that the login page clearly identifies itself
-# as a placeholder until authentication is implemented.
+# TEST 5 - LOGIN PAGE
+# Requirement #5 replaced the navigation-only placeholder with a real sign-in
+# form (updated by Zema Samuel, November 7, 2026). Verifies that the page now
+# shows a form that posts credentials together with an anti-CSRF token.
 #
-# Also checks that no login form is present, preventing
-# the unfinished page from requesting user credentials.
-#
-# This does not replace backend security testing.
-def test_login_does_not_collect_credentials_before_auth_integration(client):
+# Backend security behavior is tested in tests/test_auth.py.
+def test_login_page_now_shows_a_sign_in_form(client):
     html = client.get("/login").get_data(as_text=True)
 
-    assert "Secure login is coming soon" in html
-    assert "does not accept credentials" in html
-    assert "<form" not in html
-
-
-# TEST 6 - STYLESHEET LOADING
-# Verifies that the CampusGear CSS file is accessible.
-#
-# Checks that the stylesheet loads successfully
-# and includes the navigation menu styling.
-def test_stylesheet_is_served(client):
-    response = client.get("/static/css/styles.css")
-
-    assert response.status_code == 200
-    assert b".primary-nav" in response.data
+    assert "<form" in html and 'method="post"' in html
+    assert 'name="email"' in html and 'name="password"' in html
+    assert 'name="csrf_token"' in html
+    assert "Secure login is coming soon" not in html

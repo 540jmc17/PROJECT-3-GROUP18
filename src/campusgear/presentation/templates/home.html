@@ -153,19 +153,18 @@ Code Origin: Newly written for EECS 581 Project 3 with assistance from ChatGPT t
       </a>
 
       {# CARD 3 - Account Access
-         Links users to the login placeholder.
-         The login and authentication system will
-         be implemented by the assigned team.
+         Links users to the sign-in page
+         (Requirement #5, auth.login).
       #}
       <a class="feature-card"
-         href="{{ url_for('site.login') }}">
+         href="{{ url_for('auth.login') }}">
         <span class="feature-icon" aria-hidden="true">03</span>
 
         <h3>Account Access</h3>
 
         <p>
-          Visit the sign-in area. Secure student and staff
-          login is being added separately.
+          Sign in with your student or staff account to
+          reach your CampusGear tools.
         </p>
 
         <span class="feature-link">

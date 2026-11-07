@@ -87,8 +87,19 @@ Code Origin: Newly written for EECS 581 Project 3 with assistance from ChatGPT t
          The login team will replace this placeholder with
          authenticated account features in Requirement #5. #}
       {% block account_actions %}
-        {# Requirement #5 may replace this with authenticated account actions. #}
-        <a class="button button-small button-outline" href="{{ url_for('site.login') }}"{% if active_page == 'login' %} aria-current="page"{% endif %}>Sign in</a>
+        {# Requirement #5: shows Sign in when signed out, or the account links
+           and a POST logout form (with CSRF token) when signed in. #}
+        {% if current_user %}
+          <div class="account-actions">
+            <a class="button button-small button-outline" href="{{ account_home_url }}">{{ current_user.name }}</a>
+            <form class="inline-form" method="post" action="{{ url_for('auth.logout') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="button button-small button-outline" type="submit">Log out</button>
+            </form>
+          </div>
+        {% else %}
+          <a class="button button-small button-outline" href="{{ url_for('auth.login') }}"{% if active_page == 'login' %} aria-current="page"{% endif %}>Sign in</a>
+        {% endif %}
       {% endblock %}
 
     </div>

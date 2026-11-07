@@ -1,0 +1,36 @@
+<!--
+Name: staff_home.html
+Description: Placeholder Staff Interface shown after a staff member signs in.
+             The Requirement 7 owners will add the equipment management
+             options here.
+Programmer: Zema Samuel
+Dates: November 7, 2026
+Revisions: None
+Preconditions: Rendered by presentation/staff.py for a signed-in staff member;
+               `user` holds the id, role and name from the session.
+Postconditions: Displays a greeting and a link to the catalog.
+Errors: Jinja2 autoescaping is on for all interpolated values.
+-->
+{% extends "base.html" %}
+{% block title %}Staff Interface{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div class="shell">
+    <span class="eyebrow">CampusGear / Staff</span>
+    <h1>Staff Interface</h1>
+    <p>Signed in as {{ user.name }}.</p>
+  </div>
+</section>
+<section class="section">
+  <div class="shell">
+    <div class="feature-grid">
+      <a class="feature-card" href="{{ url_for('site.catalog') }}">
+        <span class="feature-icon" aria-hidden="true">01</span>
+        <h3>Equipment Catalog</h3>
+        <p>Review the equipment inventory.</p>
+        <span class="feature-link">View catalog <span aria-hidden="true">&rarr;</span></span>
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

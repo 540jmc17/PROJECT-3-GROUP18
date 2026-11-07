@@ -15,7 +15,7 @@ Inputs:
         - /
         - /catalog
         - /about
-        - /login
+        (/login is provided by presentation/login.py)
 
 Outputs:
     HTML pages rendered through Flask templates, with the active
@@ -63,11 +63,6 @@ def about():
     return render_template("about.html", active_page="about")
 
 
-# Login Page Route
-# Oepns the future student and staff login page.
-# Authentication will be implemented by the login team. 
-@site.get("/login")
-def login():
-    # Placeholder until Requirement #5's login routes are merged.
-    # This page intentionally does not collect credentials.
-    return render_template("login.html", active_page="login")
+# NOTE: The /login route now lives in presentation/login.py (Requirement #5),
+# registered as the "auth" Blueprint. The old navigation-only placeholder
+# route was removed to avoid two handlers for the same URL.

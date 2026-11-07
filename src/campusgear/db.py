@@ -22,7 +22,8 @@ from pathlib import Path
 import sqlite3
 
 
-DEFAULT_PATH = Path(__file__).resolve().parent.parent / 'instance' / 'campusgear.sqlite3'
+# Layout note: db.py lives in <repo>/src/campusgear/, so parents[2] is the repo root.
+DEFAULT_PATH = Path(__file__).resolve().parents[2] / 'instance' / 'campusgear.sqlite3'
 FIELDS = {
     'users': {'name', 'email', 'password_hash', 'role'},
     'equipment': {'asset_id', 'name', 'category', 'description', 'condition', 'status'},

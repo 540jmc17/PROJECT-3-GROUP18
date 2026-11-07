@@ -5,6 +5,14 @@ For Pranav/Cameren, Karim/Ahmed, Jake/John, and Zema/Nate. Updated November 5, 2
 Temporary team communication document: remove before final submission and remove
 its README link. Keep the final application setup instructions in README.md.
 
+
+> **Layout note (combined branch):** the database files now live in `src/campusgear/`
+> (`db.py`, `schema.sql`, `demo.py`) next to the Flask app, so imports such as
+> `from campusgear.db import ...` are unchanged. Run commands from the repo root with
+> `python3 -m pytest`; the demo is `cd src && python3 -m campusgear.demo`. The app now sets
+> `app.config['DATABASE']` and calls `initialize()` at startup. Login/privacy details are in
+> `docs/AUTH_HANDOFF.md`.
+
 ## Scope and ownership
 
 This handoff describes the Python interface prepared on `sprint1-db-roles`.

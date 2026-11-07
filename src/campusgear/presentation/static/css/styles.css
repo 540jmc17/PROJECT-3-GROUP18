@@ -385,3 +385,18 @@ h3 { font-size: 1.12rem; letter-spacing: -.015em; }
   html { scroll-behavior: auto; }
   *,*::before,*::after { transition-duration: 0.01ms !important; }
 }
+/* ---------- Authentication pages (Requirement 5/6): login form, alerts, tables ---------- */
+.auth-card { max-width: 420px; margin-inline: auto; padding: 28px; border: 1px solid var(--border); border-radius: 18px; background: var(--white); }
+.form-field { margin-bottom: 18px; }
+.form-field label { display: block; margin-bottom: 6px; font-weight: 600; color: var(--ink); }
+.form-field input { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid #b8cce7; border-radius: 10px; font: inherit; color: var(--ink); background: var(--white); box-sizing: border-box; }
+.form-field input:focus { outline: 3px solid var(--focus); outline-offset: 1px; }
+.alert { margin: 0 0 18px; padding: 10px 14px; border-radius: 10px; }
+.alert-error { color: #8a1f2d; background: #fdecee; border: 1px solid #f3b8bf; }
+.alert-info { color: var(--blue-dark); background: #eef5ff; border: 1px solid #c5d6f3; }
+.account-actions { display: flex; align-items: center; gap: 10px; }
+.inline-form { display: inline; margin: 0; }
+.inline-form .button { cursor: pointer; font: inherit; }
+.data-table { width: 100%; border-collapse: collapse; margin: 10px 0 30px; background: var(--white); }
+.data-table th, .data-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+.data-table th { background: var(--canvas); color: var(--muted); font-size: .9rem; }
