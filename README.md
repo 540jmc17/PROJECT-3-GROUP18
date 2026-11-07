@@ -112,7 +112,17 @@ Then activate the environment again:
 python -m pip install -r requirements.txt
 ```
 
-### 5. Run the Application
+### 5. Create the Database and Test Accounts
+
+```bash
+python seed.py --sample-data
+```
+
+This creates the SQLite database (`instance/campusgear.sqlite3`, not committed to Git) and three local test
+accounts, plus a little sample equipment so the private-records page has data. It is safe to run again; existing
+accounts are skipped. `python seed.py --reset` deletes the whole database first (it asks you to confirm).
+
+### 6. Run the Application
 
 From the project root, execute:
 
@@ -128,17 +138,44 @@ http://127.0.0.1:5000
 
 To stop the Flask development server, press `Ctrl + C` in the terminal.
 
+## Test Accounts (local only, created by `seed.py`)
+
+| Account | Email | Password | Role |
+| --- | --- | --- | --- |
+| Student A | `student.a@ku.edu` | `StudentA-pass-123` | student |
+| Student B | `student.b@ku.edu` | `StudentB-pass-123` | student |
+| Staff Member | `staff@ku.edu` | `Staff-pass-12345` | staff |
+
+Quick check of login and privacy: sign in as Student A and open "My reservations & loans" (works), then change the
+address to `/students/2/records` (403 Forbidden). Signing in as the staff member opens both records pages, and a
+student opening `/staff` gets 403.
+
+## Optional Settings (environment variables)
+
+| Variable | Purpose |
+| --- | --- |
+| `CAMPUSGEAR_SECRET_KEY` | Signs login sessions (at least 32 characters). If unset, a random key is used and logins reset whenever the server restarts. Generate one with `python -c "import secrets; print(secrets.token_hex(32))"`. |
+| `CAMPUSGEAR_COOKIE_SECURE=1` | Send the session cookie only over HTTPS. Leave unset for `http://127.0.0.1`. |
+| `CAMPUSGEAR_DB_PATH` | Use a different SQLite file. |
+| `CAMPUSGEAR_ENABLE_TEST_ROUTES=1` | Turns on the throwaway `/test/*` routes used to check Req 5 and 6 (off by default). |
+
+In PowerShell, set one for the current window with `$env:CAMPUSGEAR_ENABLE_TEST_ROUTES="1"`.
+
+## Team Integration Notes
+
+- Database storage (Req 1): [handoff.md](handoff.md)
+- Login, privacy and decorators (Req 5 and 6): [docs/AUTH_HANDOFF.md](docs/AUTH_HANDOFF.md)
+
 ## Running Tests
 
-From the project root, run the project's automated tests.
-
-If the project uses pytest:
+From the project root, run the project's automated tests:
 
 ```bash
 python -m pytest
 ```
 
-If pytest is not installed and is used by the team, add it to `requirements.txt` before running the tests.
+This runs the database tests (Req 1), navigation tests (Req 4) and login/privacy tests (Req 5 and 6). Every test uses
+its own temporary database, so it never touches `instance/campusgear.sqlite3`.
 
 ## Development Guidelines
 
