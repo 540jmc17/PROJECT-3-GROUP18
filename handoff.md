@@ -41,7 +41,6 @@ The browser never calls SQLite or imports Python. The full flow is:
   verify the password hash, and establish the authenticated user ID and role.
 - Jake/John's navigation links to those feature routes in the shared Flask app.
 - Pranav/Cam supply the database files and help everyone use the same database path.
-  For Req 7, see Cam’s wiring instructions below.
 
 Nothing automatically wires a form to these functions. Feature owners write those
 handlers. Before integrating, share route names and the authenticated-user access
@@ -160,8 +159,6 @@ status correctly. Allowed equipment statuses are `available`, `reserved`,
 `checked_out`, and `maintenance`. This helper reads current status. Future date
 conflicts and reservation availability need reservation business logic.
 
-Send Cam the Flask endpoint name that opens the registration form when it is ready.
-
 ## Requirement 4 — Jake/John skeleton and navigation
 
 Use the shared Flask application and agree on route names with the equipment and
@@ -254,11 +251,8 @@ backend callers and perform no request-level authorization themselves.
 
 ## Requirement 7 — Cam’s remaining wiring
 
-Student login already shows **Browse equipment to borrow** (catalog) and **My reservations & loans** (the signed-in student's records). Staff login shows **View inventory** (catalog). The staff **Add equipment** option is currently disabled.
-
-1. Ask Karim/Ahmed for the Flask endpoint name that opens their Add Equipment form with a GET request, including its blueprint prefix if it has one. Make sure their route is available in the integrated app.
-2. In [staff_home.html](src/campusgear/presentation/templates/staff_home.html), replace the disabled Add equipment card with a link. Copy the View inventory link pattern and pass their endpoint name to `url_for()`. Karim/Ahmed’s form handles the save and their Flask handler checks staff permission.
-3. Log in as a student and open the catalog and personal records links. Confirm Add equipment is absent. Log out, sign in as staff, and click Add equipment. It should open Karim/Ahmed’s form. The menu test checks which options appear; following the link verifies the wiring.
+1. Ask Karim/Ahmed for the Flask GET endpoint that opens their registration form. In [staff_home.html](src/campusgear/presentation/templates/staff_home.html), replace the disabled **Add equipment** button with a link using that endpoint in `url_for()`. Their form handles saving.
+2. Sign in as a student and open the existing catalog and personal records links. Then sign in as staff and check **View inventory** and **Add equipment** open the catalog and registration form respectively.
 
 ## Reservation and loan storage reference
 

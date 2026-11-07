@@ -45,13 +45,21 @@ def _alert_text(response):
 def test_student_login_reaches_student_interface(client):
     response = login(client, STUDENT_A)
     assert response.status_code == 302 and response.location.endswith("/student")
-    assert b"Student Interface" in client.get("/student").data
+    page = client.get("/student").data
+    assert b"Student Interface" in page
+    assert b"Browse equipment to borrow" in page
+    assert b"My reservations &amp; loans" in page
+    assert b"Add equipment" not in page
 
 
 def test_staff_login_reaches_staff_interface(client):
     response = login(client, STAFF)
     assert response.status_code == 302 and response.location.endswith("/staff")
-    assert b"Staff Interface" in client.get("/staff").data
+    page = client.get("/staff").data
+    assert b"Staff Interface" in page
+    assert b"View inventory" in page
+    assert b"Add equipment" in page
+    assert b"My reservations &amp; loans" not in page
 
 
 def test_session_holds_user_id_and_role(client):
