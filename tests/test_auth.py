@@ -1,19 +1,10 @@
-# Name: test_auth.py
-# Description: pytest suite for Requirements 5 (login/logout) and 6 (student
-#              privacy) on the real CampusGear Flask app and the team's real
-#              SQLite schema. It follows the Sprint 1 verification steps:
-#              successful logins and role routing, generic failure messages,
-#              logout cleanup, blocked unauthenticated access, horizontal and
-#              vertical privilege-escalation prevention, password hashing,
-#              session-cookie hardening, and an audit that fails if any
-#              non-public route can be opened without signing in.
-# Programmer: Zema Samuel
-# Dates: November 7, 2026
-# Revisions: None
-# Preconditions: Run with `pytest` from the repository root. conftest.py
-#                provides an isolated temporary database for every test.
-# Postconditions: No file outside pytest's temporary directory is changed.
-# Errors: A failed assertion names the verification step that broke.
+# Module Name: test_auth.py
+# Description: Checks login, privacy, and the menu options visible after login.
+# Inputs: Test accounts in an isolated SQLite database.
+# Outputs: pytest results for authentication, access, and role-specific menus.
+# Implementation author: Zema Samuel (original login and privacy tests).
+# External Sources / Attribution: OpenAI Codex generated the Req 7 menu assertions.
+# Creation Date: November 7, 2026.
 
 import re
 import sqlite3

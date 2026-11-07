@@ -1,13 +1,12 @@
 <!--
-Name: student_home.html
-Description: Borrowing and reservation options for a signed-in student.
-Programmer: Zema Samuel
-Dates: November 7, 2026
-Revisions: November 7, 2026. Req 7 menu options, Pranav Reddy with Codex assistance.
-Preconditions: Rendered by presentation/student.py for a signed-in student;
-               `user` holds the id, role and name from the session.
-Postconditions: Displays a greeting and a link to /students/<id>/records.
-Errors: Jinja2 autoescaping is on for all interpolated values.
+Module Name: student_home.html
+Description: Shows personal records and equipment catalog after student login.
+Inputs: Signed-in student supplied by Flask.
+Outputs: Student home page.
+Implementation author: Zema Samuel (original template).
+Creation Date: November 7, 2026.
+Reviewed by: Pranav Reddy and Cameren Green (Req 7 menu changes).
+External Sources / Attribution: Req 7 changes drafted with OpenAI Codex.
 -->
 {% extends "base.html" %}
 {% block title %}Student Interface{% endblock %}

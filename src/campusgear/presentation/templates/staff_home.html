@@ -1,13 +1,12 @@
 <!--
-Name: staff_home.html
-Description: Equipment management options for signed-in staff.
-Programmer: Zema Samuel
-Dates: November 7, 2026
-Revisions: November 7, 2026. Req 7 menu options, Pranav Reddy with Codex assistance.
-Preconditions: Rendered by presentation/staff.py for a signed-in staff member;
-               `user` holds the id, role and name from the session.
-Postconditions: Displays a greeting and a link to the catalog.
-Errors: Jinja2 autoescaping is on for all interpolated values.
+Module Name: staff_home.html
+Description: Shows inventory and equipment registration options after staff login.
+Inputs: Signed-in staff supplied by Flask.
+Outputs: Staff home page.
+Implementation author: Zema Samuel (original template).
+Creation Date: November 7, 2026.
+Reviewed by: Pranav Reddy and Cameren Green (Req 7 menu changes).
+External Sources / Attribution: Req 7 changes drafted with OpenAI Codex.
 -->
 {% extends "base.html" %}
 {% block title %}Staff Interface{% endblock %}
