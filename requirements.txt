@@ -1,0 +1,19 @@
+# ==============================================================================
+# Name:          requirements.txt
+# Description:   Python package dependencies for CampusGear.
+# Programmer:    Jake Crawford
+# Created:       11/07/2026
+# Revisions:     11/07/2026 - Initial version for Sprint 1.
+# Preconditions: Python 3.10 or newer.
+# Postconditions:`pip install -r requirements.txt` installs everything needed to
+#                run the application and the test suite.
+# Errors:        pip reports a resolution error if the Python version is too old.
+# External sources: Claude (Anthropic) assisted with drafting this file.
+#
+# Note: sqlite3 and werkzeug are not listed separately. sqlite3 is part of the
+# Python standard library, and werkzeug is installed automatically as a Flask
+# dependency -- it is what provides the password hashing in user_access.py.
+# ==============================================================================
+
+Flask>=3.0,<4.0
+pytest>=8.0
