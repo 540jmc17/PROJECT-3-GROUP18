@@ -163,7 +163,6 @@ In PowerShell, set one for the current window with `$env:CAMPUSGEAR_ENABLE_TEST_
 
 ## Team Integration Notes
 
-- Database storage (Req 1): [handoff.md](handoff.md)
 - Login, privacy and decorators (Req 5 and 6): [docs/AUTH_HANDOFF.md](docs/AUTH_HANDOFF.md)
 
 ## Running Tests
