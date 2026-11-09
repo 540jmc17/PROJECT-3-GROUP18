@@ -5,7 +5,9 @@ Description: Placeholder Staff Interface shown after a staff member signs in.
              options here.
 Programmer: Zema Samuel
 Dates: November 7, 2026
-Revisions: None
+Revisions: November 8, 2026 - Ahmed Gharib added the Add equipment link to the
+           registration form (Req 2), with code-drafting assistance from
+           Claude (Anthropic). Reviewed by Ahmed Gharib.
 Preconditions: Rendered by presentation/staff.py for a signed-in staff member;
                `user` holds the id, role and name from the session.
 Postconditions: Displays a greeting and a link to the catalog.
@@ -29,6 +31,12 @@ Errors: Jinja2 autoescaping is on for all interpolated values.
         <h3>Equipment Catalog</h3>
         <p>Review the equipment inventory.</p>
         <span class="feature-link">View catalog <span aria-hidden="true">&rarr;</span></span>
+      </a>
+      <a class="feature-card" href="{{ url_for('staff.new_equipment') }}">
+        <span class="feature-icon" aria-hidden="true">02</span>
+        <h3>Add equipment</h3>
+        <p>Register a new item with a unique asset ID.</p>
+        <span class="feature-link">Register equipment <span aria-hidden="true">&rarr;</span></span>
       </a>
     </div>
   </div>

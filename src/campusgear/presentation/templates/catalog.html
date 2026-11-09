@@ -31,6 +31,9 @@ Documentation Author: Jake Crawford and John Pannell.
 External Sources / Attribution: Uses standard HTML, CSS, Flask,
 and Jinja template functionality. 
 Code Origin: Newly written for EECS 581 Project 3 with assistance from ChatGPT to handle the layout.
+Revisions: November 8, 2026 - Ahmed Gharib replaced the placeholder with the
+database-backed equipment table and availability badges (Requirement #3), with
+code-drafting assistance from Claude (Anthropic). Reviewed by Ahmed Gharib.
 -->
 
 {# Use the shared website layout from base.html. #}
@@ -52,35 +55,54 @@ Code Origin: Newly written for EECS 581 Project 3 with assistance from ChatGPT t
 
     <h1>Equipment Catalog</h1>
 
-    <p>Find campus resources in one place. The equipment listings will be populated from the database when the catalog feature is integrated.</p>
+    <p>Browse campus equipment and see what's available to borrow.</p>
   </div>
 </section>
 
-{# CATALOG PLACEHOLDER
-   This section displays a temporary message until
-   the equipment team connects real inventory data.
-
-   The role="status" attribute identifies this section
-   as a status message for assistive technologies.
+{# EQUIPMENT LIST (Requirement 3, Ahmed Gharib)
+   Shows every item from the database with its real status, so
+   unavailable equipment is never labeled as available.
 #}
 <section class="section">
   <div class="shell">
-    <div class="empty-state" role="status">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <p class="alert alert-{{ category }}" role="status">{{ message }}</p>
+      {% endfor %}
+    {% endwith %}
 
-      {# Decorative CampusGear icon displayed above the message. #}
-      <span class="empty-icon" aria-hidden="true">CG</span>
-
-      {# Inform users that catalog integration is in progress. #}
-      <h2>Catalog integration in progress</h2>
-
-      <p>The page and navigation are ready. The equipment team will connect real inventory and availability here for Requirement #3.</p>
-
-      {# Navigation button that returns users to the homepage.
-         url_for() connects to the home route in routes.py.
-      #}
-      <a class="button button-secondary" href="{{ url_for('site.home') }}">Back to home</a>
-
-    </div>
+    {% if items %}
+      <p>{{ available_count }} of {{ items|length }} items available.</p>
+      <table class="data-table">
+        <thead>
+          <tr><th>Name</th><th>Category</th><th>Description</th><th>Asset ID</th><th>Availability</th></tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr>
+            <td>{{ item.name }}</td>
+            <td>{{ item.category }}</td>
+            <td>{{ item.description }}</td>
+            <td>{{ item.asset_id }}</td>
+            <td>
+              {% if item.status == 'available' %}
+                <span class="status-badge status-available">Available</span>
+              {% else %}
+                <span class="status-badge status-unavailable">Unavailable ({{ item.status|replace('_', ' ') }})</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty-state" role="status">
+        <span class="empty-icon" aria-hidden="true">CG</span>
+        <h2>No equipment yet</h2>
+        <p>Staff haven't registered any equipment.</p>
+        <a class="button button-secondary" href="{{ url_for('site.home') }}">Back to home</a>
+      </div>
+    {% endif %}
   </div>
 </section>
 
