@@ -23,6 +23,9 @@ Outputs:
 Implementation Author: Jake Crawford and John Pannell, with substantial code-drafting assistance from ChatGPT Pro-6.
 Creation Date: 11/6/26.
 Reviewed by: Jake Crawford and John Pannell.
+Revisions: November 8, 2026 - Ahmed Gharib replaced the catalog placeholder
+    test with a test that the real catalog loads (Requirement #3), with
+    assistance from Claude (Anthropic). Reviewed by Ahmed Gharib.
 Documentation Author: Jake Crawford and John Pannell.
 External Sources / Attribution: Pytest and Flask documentation
 Code Origin: Newly written for EECS 581 Project 3 with assistance from ChatGPT.
@@ -110,17 +113,13 @@ def test_selected_page_is_marked_active(client, path, label):
     assert html.count('aria-current="page"') == 1
 
 
-# TEST 4 - EQUIPMENT CATALOG PLACEHOLDER
-# Verifies that the catalog page displays a message
-# explaining that inventory integration is still in progress.
-#
-# The actual equipment listings are handled separately
-# under Sprint 1 Requirement #3.
-def test_catalog_is_a_clearly_labeled_placeholder(client):
-    html = client.get("/catalog").get_data(as_text=True)
-
-    assert "Catalog integration in progress" in html
-    assert "Requirement #3" in html
+# TEST 4 - EQUIPMENT CATALOG
+# The placeholder was replaced by the real catalog (Requirement #3),
+# so the page should now load and show the equipment table.
+def test_catalog_page_loads_equipment(client):
+    response = client.get("/catalog")
+    assert response.status_code == 200
+    assert "Equipment Catalog" in response.get_data(as_text=True)
 
 
 # TEST 5 - LOGIN PAGE

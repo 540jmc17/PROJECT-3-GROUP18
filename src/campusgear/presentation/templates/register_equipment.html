@@ -1,0 +1,51 @@
+<!--
+Module Name: register_equipment.html
+Description: Staff-only form for registering new equipment (Requirement 2).
+Inputs: form (previously entered values), error (message or None), csrf_token().
+Outputs: POST to /staff/equipment/new with name, category, description, asset_id.
+Implementation Author: Ahmed (Mado) Gharib, with substantial code-drafting assistance from Claude (Anthropic).
+Creation Date: November 8, 2026.
+Reviewed by: Ahmed Gharib.
+Documentation Author: Ahmed Gharib, with assistance from Claude.
+External Sources / Attribution: Created with assistance from Claude (Anthropic). Uses standard Flask, Jinja, and SQLite functionality.
+Code Origin: Newly written for EECS 581 Project 3, Requirements 2 and 3.
+-->
+{% extends "base.html" %}
+{% block title %}Register Equipment{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div class="shell">
+    <span class="eyebrow">CampusGear / Staff</span>
+    <h1>Register Equipment</h1>
+    <p>Add a new item to the inventory. Each item needs a unique asset ID.</p>
+  </div>
+</section>
+<section class="section">
+  <div class="shell">
+    <div class="auth-card wide-card">
+      {% if error %}<p class="alert alert-error" role="alert">{{ error }}</p>{% endif %}
+      <form method="post" action="{{ url_for('staff.create_equipment') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-field">
+          <label for="name">Equipment name</label>
+          <input id="name" name="name" required maxlength="200" value="{{ form.get('name', '') }}">
+        </div>
+        <div class="form-field">
+          <label for="category">Category</label>
+          <input id="category" name="category" required maxlength="200" value="{{ form.get('category', '') }}">
+        </div>
+        <div class="form-field">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" required>{{ form.get('description', '') }}</textarea>
+        </div>
+        <div class="form-field">
+          <label for="asset_id">Unique asset ID</label>
+          <input id="asset_id" name="asset_id" required maxlength="200" placeholder="e.g. KU-CAM-001" value="{{ form.get('asset_id', '') }}">
+        </div>
+        <button type="submit" class="button button-primary">Register equipment</button>
+        <a class="button button-secondary" href="{{ url_for('staff.staff_home') }}">Cancel</a>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

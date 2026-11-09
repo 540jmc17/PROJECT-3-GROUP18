@@ -27,11 +27,16 @@ Reviewed by: Jake Crawford and John Pannell.
 Documentation Author: Jake Crawford and John Pannell.
 External Sources / Attribution: Flask documentation - Blueprints and Application Routing.
 Code Origin: Newly written for EECS 581 Project 3 with assistance from ChatGPT.
+Revisions: November 8, 2026 - Ahmed Gharib connected /catalog to the database
+    (Requirement #3) using get_catalog(), with code-drafting assistance from
+    Claude (Anthropic). Reviewed by Ahmed Gharib.
 """
 
 # Import Blueprint to organize the website's routes.
 # Import render_template to display the HTML pages.
 from flask import Blueprint, render_template
+
+from .business_logic.equipment_management import get_catalog
 
 # Create a Blueprint named "site" to group our website routes.
 # This Blueprint is registered in __init__.py.
@@ -51,8 +56,11 @@ def home():
 # The actual equipement database will be connnected by the catalog team.
 @site.get("/catalog")
 def catalog():
-    # Placeholder until Requirement #3's real database-backed catalog is merged.
-    return render_template("catalog.html", active_page="catalog")
+    # Requirement #3 (Ahmed Gharib): load equipment from the database.
+    items = get_catalog()
+    available_count = sum(1 for item in items if item["status"] == "available")
+    return render_template("catalog.html", active_page="catalog",
+                           items=items, available_count=available_count)
 
 
 # About Page Route
