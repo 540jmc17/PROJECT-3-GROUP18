@@ -2,6 +2,13 @@
 
 A web application for University of Kansas students to reserve and borrow equipment while staff manage inventory, checkouts, returns, and maintenance.
 
+## Sprint 2 branch note
+
+This branch carries forward Pranav and Cameren's Requirement 7 role-specific menus
+and checks, already implemented on `sprint1-db-roles` but not merged into `sprint1`.
+This cleanup preserves that work alongside the working Add equipment link.
+The Sprint 1 branches remain unchanged and frozen for submission.
+
 ## Project Overview
 
 CampusGear provides a centralized platform for managing shared university equipment. Students can browse available equipment, make reservations, view borrowing information, report damage, and communicate with staff. Staff can manage equipment inventory, process checkouts and returns, and handle maintenance requests.
