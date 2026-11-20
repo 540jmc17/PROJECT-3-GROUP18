@@ -165,7 +165,7 @@ def return_equipment(form):
         # Lock before reading so a repeat or competing return cannot save twice.
         connection.execute("BEGIN IMMEDIATE")
         loan = connection.execute("""
-            SELECT id, equipment_id, checkout_date FROM loans
+            SELECT id, equipment_id, reservation_id, checkout_date FROM loans
             WHERE id = ? AND status = 'checked_out' AND actual_return_date IS NULL
         """, (form.get("loan_id"),)).fetchone()
         if loan is None:
@@ -179,4 +179,9 @@ def return_equipment(form):
         # Derive the equipment from the saved loan, never from a submitted item ID.
         connection.execute("UPDATE equipment SET condition = ?, status = ? WHERE id = ?",
                            (condition, RETURN_CONDITIONS[condition], loan["equipment_id"]))
-        # Linked reservation transitions remain with the reservation workflow.
+        # Codex fix. Complete a linked reservation when its loan is returned.
+        if loan["reservation_id"] is not None:
+            connection.execute("""
+                UPDATE reservations SET status = 'completed'
+                WHERE id = ? AND status = 'checked_out'
+            """, (loan["reservation_id"],))

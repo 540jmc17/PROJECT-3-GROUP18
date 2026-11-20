@@ -36,7 +36,6 @@ def test_return_saves_loan_and_equipment(client, seeded_app, condition, status, 
     if linked:
         with transaction(database) as connection:
             connection.execute("UPDATE loans SET reservation_id = 1 WHERE id = 1")
-    before = snapshot(database)
     login(client, STAFF)
     assert RETURNS in client.get("/staff").get_data(as_text=True)
     page = client.get(RETURNS).get_data(as_text=True)
@@ -54,7 +53,9 @@ def test_return_saves_loan_and_equipment(client, seeded_app, condition, status, 
         assert (item["condition"], item["status"]) == (condition, status)
         assert get_record(connection, "loans", 2)["status"] == "checked_out"
         assert get_record(connection, "equipment", 2)["status"] == "checked_out"
-    assert snapshot(database)["reservations"] == before["reservations"]
+        reservation_status = "completed" if linked else "checked_out"
+        assert get_record(connection, "reservations", 1)["status"] == reservation_status
+        assert get_record(connection, "reservations", 2)["status"] == "checked_out"
     saved = snapshot(database)
     assert submit(client, condition="damaged", actual_return_date="2026-11-11").status_code == 400
     assert snapshot(database) == saved
@@ -108,11 +109,13 @@ def test_no_active_loans(client, seeded_app):
     assert "No active loans" in page and "disabled" in page
 
 
-def test_return_rolls_back_when_equipment_update_fails(client, seeded_app):
+@pytest.mark.parametrize("table", ["equipment", "reservations"])
+def test_return_rolls_back_when_status_update_fails(client, seeded_app, table):
     database = seeded_app.config["DATABASE"]
     with transaction(database) as connection:
-        connection.execute("""
-            CREATE TRIGGER reject_return BEFORE UPDATE ON equipment
+        connection.execute("UPDATE loans SET reservation_id = 1 WHERE id = 1")
+        connection.execute(f"""
+            CREATE TRIGGER reject_return BEFORE UPDATE ON {table}
             BEGIN SELECT RAISE(ABORT, 'test return failure'); END
         """)
     before = snapshot(database)
