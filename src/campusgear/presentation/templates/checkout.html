@@ -1,0 +1,86 @@
+{#
+Module Name: checkout.html
+Description: Displays the staff forms for reservation and direct checkout.
+
+Inputs: Eligible reservations, students, available equipment, and status messages.
+Outputs: Checkout forms that submit to /staff/checkout.
+
+Implementation authors: Codex fully implemented the shared form fields and
+status messages. Pranav Reddy and Codex co-authored both checkout forms.
+Creation Date: November 19, 2026.
+Reviewed by: Pranav Reddy.
+Documentation author: Pranav Reddy.
+External Sources / Attribution: Uses standard HTML and Jinja.
+Code Origin: Newly written for EECS 581 Project 3, Requirements 11/12.
+#}
+{% extends "base.html" %}
+
+{# The checkout type gives each copy of the date fields unique IDs. #}
+{% macro checkout_fields(checkout_type) %}
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="checkout_type" value="{{ checkout_type }}">
+  <div class="form-field">
+    <label for="{{ checkout_type }}-checkout-date">Checkout date</label>
+    <input id="{{ checkout_type }}-checkout-date" type="date" name="checkout_date" required>
+  </div>
+  <div class="form-field">
+    <label for="{{ checkout_type }}-due-date">Expected return date</label>
+    <input id="{{ checkout_type }}-due-date" type="date" name="due_date" required>
+  </div>
+{% endmacro %}
+
+{% block title %}Check out equipment{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div class="shell"><h1>Check out equipment</h1></div>
+</section>
+<section class="section">
+  <div class="shell">
+    <div class="auth-card checkout-card">
+      {% if error %}<p class="alert alert-error" role="alert">{{ error }}</p>{% endif %}
+      {% for message in get_flashed_messages(category_filter=['success']) %}
+        <p class="alert alert-success" role="status">{{ message }}</p>
+      {% endfor %}
+      <h2>From a reservation</h2>
+      <form method="post">
+        <div class="form-field">
+          <label for="reservation">Reservation</label>
+          <select id="reservation" name="reservation_id" required>
+            <option value="">{{ 'Select a reservation' if reservations else 'No eligible reservations' }}</option>
+            {% for reservation in reservations %}
+              <option value="{{ reservation.id }}">{{ reservation.student_name }} · {{ reservation.equipment_name }} ({{ reservation.asset_id }}) · {{ reservation.pickup_date }} to {{ reservation.return_date }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {{ checkout_fields('reservation') }}
+        <button class="button button-primary" type="submit">Check out reservation</button>
+      </form>
+
+      <hr>
+      <h2>Direct checkout</h2>
+      <form method="post">
+        <div class="form-field">
+          <label for="student">Student</label>
+          <select id="student" name="student_id" required>
+            <option value="">Select a student</option>
+            {% for student in students %}
+              <option value="{{ student.id }}">{{ student.name }} ({{ student.email }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="equipment">Available equipment</label>
+          <select id="equipment" name="equipment_id" required>
+            <option value="">{{ 'Select an item' if items else 'No equipment available' }}</option>
+            {% for item in items %}
+              <option value="{{ item.id }}">{{ item.name }} ({{ item.asset_id }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        {{ checkout_fields('direct') }}
+        <button class="button button-primary" type="submit">Check out equipment</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}
