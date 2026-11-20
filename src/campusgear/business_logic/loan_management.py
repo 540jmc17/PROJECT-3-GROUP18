@@ -1,16 +1,17 @@
 """
 Module Name: loan_management.py
-Description: Handles staff checkout from reservations and direct checkout.
+Description: Handles staff checkout from reservations, direct checkout, and returns.
 
 Inputs: Checkout form fields and the configured SQLite database.
-Outputs: Dropdown choices, saved loans, and updated checkout statuses.
+Outputs: Dropdown choices, saved loans, and updated equipment statuses.
 
 Implementation author: Pranav Reddy, with Codex assistance.
 Creation Date: November 19, 2026.
 Reviewed by: Pranav Reddy.
 Documentation author: Pranav Reddy
 External Sources / Attribution: Uses standard Python and SQLite APIs.
-Code Origin: Newly written for EECS 581 Project 3, Requirements 11/12.
+Code Origin: Newly written for EECS 581 Project 3, Requirements 11/12 and 13.
+Req 13 revision: November 20, 2026, implemented with OpenAI Codex assistance.
 """
 
 from datetime import date
@@ -119,3 +120,63 @@ def check_out_equipment(form): # Outline help from Codex
         if reservation_id is not None:
             connection.execute("UPDATE reservations SET status = 'checked_out' WHERE id = ?",
                                (reservation_id,))
+
+
+class ReturnError(ValueError):
+    """A return could not be completed with the submitted details."""
+
+
+RETURN_CONDITIONS = {
+    "good": "available",
+    "damaged": "maintenance",
+    "needs_repair": "maintenance",
+}
+
+
+def return_options():
+    """List active loans for staff to select for return."""
+    with transaction(current_app.config["DATABASE"]) as connection:
+        return connection.execute("""
+            SELECT l.id, l.checkout_date, l.due_date, u.name AS student_name,
+                   e.name AS equipment_name, e.asset_id
+            FROM loans AS l
+            JOIN users AS u ON u.id = l.user_id
+            JOIN equipment AS e ON e.id = l.equipment_id
+            WHERE l.status = 'checked_out' AND l.actual_return_date IS NULL
+            ORDER BY l.due_date, l.id
+        """).fetchall()
+
+
+def return_equipment(form):
+    """Record the return and equipment condition in a single transaction."""
+    return_date = form.get("actual_return_date", "")
+    try:
+        returned = date.fromisoformat(return_date)
+    except ValueError as err:
+        raise ReturnError("Enter a valid return date in YYYY-MM-DD format.") from err
+    if returned.isoformat() != return_date:
+        raise ReturnError("Use YYYY-MM-DD for the return date.")
+
+    condition = form.get("condition", "")
+    if condition not in RETURN_CONDITIONS:
+        raise ReturnError("Select the equipment condition.")
+
+    with transaction(current_app.config["DATABASE"]) as connection:
+        # Lock before reading so a repeat or competing return cannot save twice.
+        connection.execute("BEGIN IMMEDIATE")
+        loan = connection.execute("""
+            SELECT id, equipment_id, checkout_date FROM loans
+            WHERE id = ? AND status = 'checked_out' AND actual_return_date IS NULL
+        """, (form.get("loan_id"),)).fetchone()
+        if loan is None:
+            raise ReturnError("Select an active loan that has not already been returned.")
+        if return_date < loan["checkout_date"]:
+            raise ReturnError("Return date cannot be before the checkout date.")
+
+        connection.execute("""
+            UPDATE loans SET actual_return_date = ?, status = 'returned' WHERE id = ?
+        """, (return_date, loan["id"]))
+        # Derive the equipment from the saved loan, never from a submitted item ID.
+        connection.execute("UPDATE equipment SET condition = ?, status = ? WHERE id = ?",
+                           (condition, RETURN_CONDITIONS[condition], loan["equipment_id"]))
+        # Linked reservation transitions remain with the reservation workflow.
