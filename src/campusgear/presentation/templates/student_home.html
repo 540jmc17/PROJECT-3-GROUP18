@@ -5,7 +5,10 @@ Description: Placeholder Student Interface shown after a student signs in.
              7 owners will add the borrowing and reservation options here.
 Programmer: Zema Samuel
 Dates: November 7, 2026
-Revisions: None
+Revisions: 
+- November 19, 2026 - Jake Crawford/John Pannell added an Equipment due dates
+to the student home page to allow students to view their checked-out equipment and expected
+return dates (Requirement 16) with substantial code-drafting assistance from ChatGPT Pro-6.
 Preconditions: Rendered by presentation/student.py for a signed-in student;
                `user` holds the id, role and name from the session.
 Postconditions: Displays a greeting and a link to /students/<id>/records.
@@ -29,6 +32,12 @@ Errors: Jinja2 autoescaping is on for all interpolated values.
         <h3>My reservations &amp; loans</h3>
         <p>See the equipment you have reserved or borrowed.</p>
         <span class="feature-link">Open my records <span aria-hidden="true">&rarr;</span></span>
+      </a>
+      {# Open the due dates page for the signed-in student's active loans. #}
+      <a class="feature-card" href="{{ url_for('student.active_loans') }}">
+        <h3>Equipment due dates</h3>
+        <p>See when your checked-out equipment is due.</p>
+        <span class="feature-link">View due dates <span aria-hidden="true">&rarr;</span></span>
       </a>
       <a class="feature-card" href="{{ url_for('site.catalog') }}">
         <span class="feature-icon" aria-hidden="true">02</span>

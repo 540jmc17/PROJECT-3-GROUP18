@@ -31,9 +31,12 @@ Documentation Author: Jake Crawford and John Pannell.
 External Sources / Attribution: Uses standard HTML, CSS, Flask,
 and Jinja template functionality. 
 Code Origin: Newly written for EECS 581 Project 3 with assistance from ChatGPT to handle the layout.
-Revisions: November 8, 2026 - Ahmed Gharib replaced the placeholder with the
+Revisions: 
+- November 8, 2026 - Ahmed Gharib replaced the placeholder with the
 database-backed equipment table and availability badges (Requirement #3), with
 code-drafting assistance from Claude (Anthropic). Reviewed by Ahmed Gharib.
+- November 19, 2026 - Jake Crawford/John Pannell added a Reserve link for available equipment that is visible only to
+signed-in students with substantial code-drafting assistance from ChatGPT Pro-6 (Requirement #8).
 -->
 
 {# Use the shared website layout from base.html. #}
@@ -87,6 +90,11 @@ code-drafting assistance from Claude (Anthropic). Reviewed by Ahmed Gharib.
             <td>
               {% if item.status == 'available' %}
                 <span class="status-badge status-available">Available</span>
+                {# Only signed-in students see Reserve for available items. #}
+                {% if current_user and current_user.role == 'student' %}
+                  <a href="{{ url_for('student.reserve_equipment', equipment_id=item.id) }}"
+                     aria-label="Reserve {{ item.name }}">Reserve</a>
+                {% endif %}
               {% else %}
                 <span class="status-badge status-unavailable">Unavailable ({{ item.status|replace('_', ' ') }})</span>
               {% endif %}
