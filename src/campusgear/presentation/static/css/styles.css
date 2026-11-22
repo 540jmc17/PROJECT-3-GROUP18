@@ -26,6 +26,10 @@
  * Code Origin: Newly written for EECS 581 Project 3 with assistance from ChatGPT to design.
  * The shared styling supports Sprint 1 Requirement #4 by keeping
  * the website's navigation consistent across all pages.
+ *
+ * Checkout revision (Requirements 11/12): Codex updated the two form selectors
+ * and added the checkout card width and divider rules.
+ * Reviewed by: Pranav Reddy (checkout revision).
  */
 
 
@@ -389,8 +393,8 @@ h3 { font-size: 1.12rem; letter-spacing: -.015em; }
 .auth-card { max-width: 420px; margin-inline: auto; padding: 28px; border: 1px solid var(--border); border-radius: 18px; background: var(--white); }
 .form-field { margin-bottom: 18px; }
 .form-field label { display: block; margin-bottom: 6px; font-weight: 600; color: var(--ink); }
-.form-field input { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid #b8cce7; border-radius: 10px; font: inherit; color: var(--ink); background: var(--white); box-sizing: border-box; }
-.form-field input:focus { outline: 3px solid var(--focus); outline-offset: 1px; }
+.form-field input, .form-field select { width: 100%; min-height: 44px; padding: 8px 12px; border: 1px solid #b8cce7; border-radius: 10px; font: inherit; color: var(--ink); background: var(--white); box-sizing: border-box; }
+.form-field input:focus, .form-field select:focus { outline: 3px solid var(--focus); outline-offset: 1px; }
 .alert { margin: 0 0 18px; padding: 10px 14px; border-radius: 10px; }
 .alert-error { color: #8a1f2d; background: #fdecee; border: 1px solid #f3b8bf; }
 .alert-info { color: var(--blue-dark); background: #eef5ff; border: 1px solid #c5d6f3; }
@@ -405,6 +409,8 @@ h3 { font-size: 1.12rem; letter-spacing: -.015em; }
 .alert-success { color: #1d5e33; background: #eaf7ee; border: 1px solid #b6e0c3; }
 .form-field textarea { width: 100%; min-height: 96px; padding: 8px 12px; border: 1px solid #b8cce7; border-radius: 10px; font: inherit; box-sizing: border-box; }
 .wide-card { max-width: 560px; }
+.checkout-card { max-width: 640px; }
+.checkout-card hr { border: 0; border-top: 1px solid var(--border); margin: 24px 0; }
 .status-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .85rem; font-weight: 700; }
 .status-available { color: #1d5e33; background: #eaf7ee; }
 .status-unavailable { color: #8a1f2d; background: #fdecee; }

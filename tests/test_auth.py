@@ -9,7 +9,8 @@
 #              non-public route can be opened without signing in.
 # Programmer: Zema Samuel
 # Dates: November 7, 2026
-# Revisions: None
+# Revisions: Req 7 menu assertions carried over from sprint1-db-roles
+# (Pranav/Cameren, with OpenAI Codex assistance); registration link checked.
 # Preconditions: Run with `pytest` from the repository root. conftest.py
 #                provides an isolated temporary database for every test.
 # Postconditions: No file outside pytest's temporary directory is changed.
@@ -45,13 +46,24 @@ def _alert_text(response):
 def test_student_login_reaches_student_interface(client):
     response = login(client, STUDENT_A)
     assert response.status_code == 302 and response.location.endswith("/student")
-    assert b"Student Interface" in client.get("/student").data
+    page = client.get("/student").data
+    assert b"Student Interface" in page
+    assert b"Browse equipment to borrow" in page
+    assert b"My reservations &amp; loans" in page
+    assert b"Add equipment" not in page
 
 
 def test_staff_login_reaches_staff_interface(client):
     response = login(client, STAFF)
     assert response.status_code == 302 and response.location.endswith("/staff")
-    assert b"Staff Interface" in client.get("/staff").data
+    page = client.get("/staff").data
+    assert b"Staff Interface" in page
+    assert b"View inventory" in page
+    assert b"Add equipment" in page
+    assert b"My reservations &amp; loans" not in page
+    # Preserve the functional Req 2 link when importing the older Req 7 menus.
+    assert b'href="/staff/equipment/new"' in page
+    assert client.get("/staff/equipment/new").status_code == 200
 
 
 def test_session_holds_user_id_and_role(client):

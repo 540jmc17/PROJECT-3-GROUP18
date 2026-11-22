@@ -2,9 +2,16 @@
 
 A web application for University of Kansas students to reserve and borrow equipment while staff manage inventory, checkouts, returns, and maintenance.
 
+## Sprint 2 branch note
+
+This branch carries forward Pranav and Cameren's Requirement 7 role-specific menus
+and checks, already implemented on `sprint1-db-roles` but not merged into `sprint1`.
+This cleanup preserves that work alongside the working Add equipment link.
+The Sprint 1 branches remain unchanged and frozen for submission.
+
 ## Project Overview
 
-CampusGear provides a centralized platform for managing shared university equipment. Students can browse available equipment, make reservations, view borrowing information, report damage, and communicate with staff. Staff can manage equipment inventory, process checkouts and returns, and handle maintenance requests.
+CampusGear is designed to centralize shared university equipment management. The project covers student browsing, reservations, borrowing history, damage reports, and messaging, along with staff inventory, checkout, return, and maintenance workflows.
 
 ## Technologies
 
@@ -50,7 +57,7 @@ Handles communication with the SQLite database, including saving, retrieving, an
 
 - Database connection and operations
 
-Location: `src/campusgear/data_access/`
+Location: `src/campusgear/db.py`
 
 The application follows this request flow:
 
@@ -82,11 +89,25 @@ cd PROJECT-3-GROUP18
 
 ### 2. Create a Virtual Environment
 
-```bash
+On macOS or Linux, use `python3`.
+
+```sh
+python3 -m venv .venv
+```
+
+On Windows, use the Python launcher.
+
+```powershell
 py -m venv .venv
 ```
 
 ### 3. Activate the Virtual Environment
+
+On macOS or Linux, activate the environment from the project directory.
+
+```sh
+source .venv/bin/activate
+```
 
 For Windows PowerShell:
 
@@ -150,6 +171,17 @@ Quick check of login and privacy: sign in as Student A and open "My reservations
 address to `/students/2/records` (403 Forbidden). Signing in as the staff member opens both records pages, and a
 student opening `/staff` gets 403.
 
+## Staff Checkout (Sprint 2, Requirements 11 and 12)
+
+Sign in as **Staff Member** and open **Check out equipment** (`/staff/checkout`).
+
+- **From a reservation (Req 11).** Select an eligible reservation and enter the checkout and expected return dates. The app saves a linked loan and marks the reservation and equipment as checked out.
+- **Direct checkout (Req 12).** Select a student and an available item, then enter the dates. The app saves the loan without a reservation and marks the equipment as checked out.
+
+The expected return date must be later than the checkout date. Direct checkout excludes items with an outstanding reservation, including future bookings. Equipment returns are covered by Req 13.
+
+The sample data from `seed.py --sample-data` contains items and reservations that are already checked out. To try direct checkout with a freshly seeded database, register an item through **Add equipment** first. Reservation checkout in the browser requires an eligible reservation in the database. The checkout tests set up both kinds of sample records automatically.
+
 ## Optional Settings (environment variables)
 
 | Variable | Purpose |
@@ -173,8 +205,13 @@ From the project root, run the project's automated tests:
 python -m pytest
 ```
 
-This runs the database tests (Req 1), navigation tests (Req 4) and login/privacy tests (Req 5 and 6). Every test uses
-its own temporary database, so it never touches `instance/campusgear.sqlite3`.
+The suite covers the database, equipment registration and catalog, navigation, login and privacy, and staff checkout. Tests use temporary databases separate from `instance/campusgear.sqlite3`.
+
+To verify staff checkout independently, run the checkout test file.
+
+```bash
+python -m pytest -q tests/test_checkout.py
+```
 
 ## Development Guidelines
 
