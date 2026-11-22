@@ -1,0 +1,27 @@
+<!--
+Name: error.html
+Description: Clean error page used for HTTP 400, 403 and 404 responses. Shows a
+             short title and message and never exposes internal details such
+             as stack traces or record data.
+Programmer: Zema Samuel
+Dates: November 7, 2026
+Revisions: None
+Preconditions: Rendered by the error handlers in campusgear/__init__.py with
+               `status`, `title` and `message`.
+Postconditions: Displays "<status> <title>", the message and a link home.
+Errors: Jinja2 autoescaping is on for all interpolated values.
+-->
+{% extends "base.html" %}
+{% block title %}{{ status }} {{ title }}{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="shell">
+    <div class="empty-state" role="alert">
+      <span class="empty-icon" aria-hidden="true">{{ status }}</span>
+      <h1>{{ status }} {{ title }}</h1>
+      <p>{{ message }}</p>
+      <a class="button button-secondary" href="{{ url_for('site.home') }}">Back to home</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

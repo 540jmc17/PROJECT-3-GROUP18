@@ -1,0 +1,59 @@
+<!--
+Name: active_loans.html
+Description: Student Equipment Due Dates page of the Presentation Layer.
+             Displays the equipment currently checked out by the signed-in
+             student, including each item's name, unique asset ID, and
+             expected return date. If the student has no active loans,
+             the page displays a message indicating that no equipment
+             is currently checked out. Requirement #16 (Display Equipment Due Dates).
+Programmer: Jake Crawford and John Pannell, with substantial code-drafting assistance from ChatGPT Pro-6.
+Dates: November 19, 2026
+Revisions: None
+Preconditions: Rendered by the student presentation route for a signed-in
+               student. The route passes the student's active loans through
+               the `loans` variable. The shared base.html template is available.
+Postconditions: Displays a table of the student's active equipment loans and
+                their expected return dates, or a message when no active loans
+                exist. Provides a link back to the student homepage.
+Errors: Missing loan information or required loan fields may prevent the
+        template from rendering correctly. Unauthorized access must be
+        handled by the associated student route.
+-->
+
+{% extends "base.html" %}
+{% block title %}Equipment due dates{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div class="shell">
+    <h1>Equipment due dates</h1>
+  </div>
+</section>
+<section class="section">
+  <div class="shell">
+    {# The route passes only active loans owned by the signed-in student. #}
+    {% if loans %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">Equipment</th>
+            <th scope="col">Asset ID</th>
+            <th scope="col">Expected return date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for loan in loans %}
+            <tr>
+              <td>{{ loan.equipment_name }}</td>
+              <td>{{ loan.asset_id }}</td>
+              <td><time datetime="{{ loan.due_date }}">{{ loan.due_date }}</time></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>You have no equipment checked out.</p>
+    {% endif %}
+    <a class="button button-secondary" href="{{ url_for('student.student_home') }}">Back to student home</a>
+  </div>
+</section>
+{% endblock %}
