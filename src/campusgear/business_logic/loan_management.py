@@ -1,17 +1,53 @@
 """
 Module Name: loan_management.py
-Description: Handles staff checkout from reservations, direct checkout, and returns.
-
-Inputs: Checkout form fields and the configured SQLite database.
-Outputs: Dropdown choices, saved loans, and updated equipment statuses.
-
-Implementation author: Pranav Reddy, with Codex assistance.
-Creation Date: November 19, 2026.
-Reviewed by: Pranav Reddy.
-Documentation author: Pranav Reddy
-External Sources / Attribution: Uses standard Python and SQLite APIs.
-Code Origin: Newly written for EECS 581 Project 3, Requirements 11/12 and 13.
-Req 13 revision: November 20, 2026, implemented with OpenAI Codex assistance.
+Description:
+    Loan Management component of CampusGear's Business Logic Layer. Handles
+    checkout from a reservation (Requirement 11), direct checkout without a
+    reservation (Requirement 12), equipment returns (Requirement 13), and
+    retrieval of active student loans and due dates (Requirement 16).
+Inputs:
+    Checkout and return form fields, authenticated student IDs for loan
+    retrieval, and the Flask application's DATABASE configuration value.
+Outputs:
+    Staff form choices, saved loan records, updated equipment/reservation
+    statuses, and a student's active equipment loans ordered by due date.
+Implementation Authors:
+    Pranav Reddy: staff checkout and returns, with OpenAI Codex assistance.
+    Jake Crawford and John Pannell: active-loan and due-date retrieval, with
+    substantial ChatGPT Pro-6 code-drafting assistance.
+Creation Date:
+    November 19, 2026: original checkout and active-loan implementations.
+Revisions:
+    November 20, 2026: Requirement 13 returns added with OpenAI Codex assistance.
+    November 22, 2026: combined staff and student loan functionality and
+    standardized comments and docstrings with OpenAI Codex assistance.
+Review Status:
+    Pranav Reddy reviewed the original staff implementation.
+    The integrated version and revised documentation await team review.
+Documentation Attribution:
+    Original documentation: Pranav Reddy, Jake Crawford, and John Pannell.
+External Sources / AI Attribution:
+    Original staff functionality credits OpenAI Codex; the student component
+    credits ChatGPT Pro-6. Integration and documentation revisions were
+    assisted by OpenAI Codex. Uses Python, Flask, SQLite, and existing project
+    database helpers (get_record, insert_record, and transaction).
+Code Origin:
+    Combined Sprint 2 implementations for EECS 581 Project 3.
+Preconditions:
+    A Flask application context is active and DATABASE identifies an
+    initialized database with users, equipment, reservations, and loans.
+    Presentation routes enforce staff access and CSRF checks for writes.
+    Student loan retrieval receives the authenticated student's ID.
+Postconditions:
+    Checkout saves a loan and marks the item and any linked reservation as
+    'checked_out'. Return marks the loan 'returned', records the return date,
+    updates item condition/availability, and completes a linked reservation
+    when its status is 'checked_out'. Related writes commit or roll back
+    together. Active-loan retrieval reads records without modifying them.
+Errors:
+    Invalid or ineligible checkouts raise CheckoutError. Invalid or ineligible
+    returns raise ReturnError. Configuration and database errors propagate to
+    callers. SQL values are supplied as bound parameters.
 """
 
 from datetime import date
@@ -21,6 +57,10 @@ from flask import current_app
 from ..config import ROLE_STUDENT
 from ..db import get_record, insert_record, transaction
 
+
+# ---------------------------------------------------------------------------
+# Shared exceptions and form-choice queries
+# ---------------------------------------------------------------------------
 
 class CheckoutError(ValueError):
     """A checkout could not be completed with the submitted details."""
@@ -46,8 +86,17 @@ DIRECT_EQUIPMENT = """
 """
 
 
-def checkout_options(): # Helped by Codex
-    """Read the dropdown choices for the staff checkout forms."""
+# ---------------------------------------------------------------------------
+# Requirements 11 and 12: Staff checkout
+# ---------------------------------------------------------------------------
+
+def checkout_options():
+    """Retrieve reservation, student, and item choices for staff checkout.
+
+    Returns:
+        tuple: Three lists of SQLite rows: eligible reservations, student
+            accounts, and equipment eligible for direct checkout.
+    """
     with transaction(current_app.config["DATABASE"]) as connection:
         reservations = connection.execute(
             ELIGIBLE_RESERVATIONS + " ORDER BY r.pickup_date, r.id", (ROLE_STUDENT,)).fetchall()
@@ -58,8 +107,21 @@ def checkout_options(): # Helped by Codex
     return reservations, students, items
 
 
-def check_out_equipment(form): # Outline help from Codex
-    """Validate the checkout and save the loan and statuses together."""
+def check_out_equipment(form):
+    """Validate a checkout and save the loan and related statuses together.
+
+    Args:
+        form (Mapping): checkout_type, checkout_date, and due_date, plus
+            reservation_id for a reservation checkout or equipment_id and
+            student_id for a direct checkout. Dates use YYYY-MM-DD format.
+
+    Returns:
+        None: The loan and status changes have been committed.
+
+    Raises:
+        CheckoutError: If dates, checkout type, selected records, or current
+            eligibility are invalid, or a duplicate checkout is attempted.
+    """
     checkout_date = form.get("checkout_date", "")
     due_date = form.get("due_date", "")
     try:
@@ -81,17 +143,18 @@ def check_out_equipment(form): # Outline help from Codex
         # Lock before reading so two staff checkouts cannot both claim the same item.
         connection.execute("BEGIN IMMEDIATE")
         if checkout_type == "reservation":
-            reservation = connection.execute( # Helped by Codex
+            reservation = connection.execute(
                 ELIGIBLE_RESERVATIONS + " AND r.id = ?",
                 (ROLE_STUDENT, form.get("reservation_id"))).fetchone()
             if reservation is None:
                 raise CheckoutError("That reservation is unavailable for checkout.")
+            # Use the stored reservation to identify the borrower and equipment.
             reservation_id = reservation["id"]
             student_id = reservation["user_id"]
             equipment_id = reservation["equipment_id"]
         elif checkout_type == "direct":
             item = connection.execute(DIRECT_EQUIPMENT + " AND id = ?",
-                                      (form.get("equipment_id"),)).fetchone() # Helped by Codex
+                                      (form.get("equipment_id"),)).fetchone()
             if item is None:
                 raise CheckoutError("Select equipment that is available for direct checkout.")
             student = get_record(connection, "users", form.get("student_id"))
@@ -113,7 +176,7 @@ def check_out_equipment(form): # Outline help from Codex
         if existing_loan:
             raise CheckoutError("This equipment or reservation already has a checkout.")
 
-        # The transaction rolls back the loan if a status update fails. # Added by Codex
+        # The transaction rolls back the loan if a status update fails.
         insert_record(connection, "loans", user_id=student_id, equipment_id=equipment_id,
                       reservation_id=reservation_id, checkout_date=checkout_date, due_date=due_date)
         connection.execute("UPDATE equipment SET status = 'checked_out' WHERE id = ?", (equipment_id,))
@@ -122,10 +185,15 @@ def check_out_equipment(form): # Outline help from Codex
                                (reservation_id,))
 
 
+# ---------------------------------------------------------------------------
+# Requirement 13: Equipment returns
+# ---------------------------------------------------------------------------
+
 class ReturnError(ValueError):
     """A return could not be completed with the submitted details."""
 
 
+# A good return makes the item available; damage or repair needs require maintenance.
 RETURN_CONDITIONS = {
     "good": "available",
     "damaged": "maintenance",
@@ -134,7 +202,12 @@ RETURN_CONDITIONS = {
 
 
 def return_options():
-    """List active loans for staff to select for return."""
+    """Retrieve active loans for the staff return form.
+
+    Returns:
+        list: SQLite rows containing the loan ID, checkout and due dates,
+            borrower name, equipment name, and asset ID, ordered by due date.
+    """
     with transaction(current_app.config["DATABASE"]) as connection:
         return connection.execute("""
             SELECT l.id, l.checkout_date, l.due_date, u.name AS student_name,
@@ -148,7 +221,19 @@ def return_options():
 
 
 def return_equipment(form):
-    """Record the return and equipment condition in a single transaction."""
+    """Record a return and update the equipment and linked reservation together.
+
+    Args:
+        form (Mapping): loan_id, actual_return_date in YYYY-MM-DD format, and
+            condition ('good', 'damaged', or 'needs_repair').
+
+    Returns:
+        None: The return date and related status changes have been committed.
+
+    Raises:
+        ReturnError: If the date or condition is invalid, the loan is not an
+            active checkout, or the return date precedes the checkout date.
+    """
     return_date = form.get("actual_return_date", "")
     try:
         returned = date.fromisoformat(return_date)
@@ -179,9 +264,39 @@ def return_equipment(form):
         # Derive the equipment from the saved loan, never from a submitted item ID.
         connection.execute("UPDATE equipment SET condition = ?, status = ? WHERE id = ?",
                            (condition, RETURN_CONDITIONS[condition], loan["equipment_id"]))
-        # Codex fix. Complete a linked reservation when its loan is returned.
+        # Complete a checked-out reservation when its linked loan is returned.
         if loan["reservation_id"] is not None:
             connection.execute("""
                 UPDATE reservations SET status = 'completed'
                 WHERE id = ? AND status = 'checked_out'
             """, (loan["reservation_id"],))
+
+
+# ---------------------------------------------------------------------------
+# Requirement 16: Student active loans and due dates
+# ---------------------------------------------------------------------------
+
+def get_active_loans(student_id):
+    """Retrieve a student's currently checked-out equipment, ordered by due date.
+
+    Args:
+        student_id (int): The authenticated student's user ID.
+
+    Returns:
+        list: SQLite rows containing equipment_name, asset_id, and due_date.
+            Rows are ordered by due date and then loan ID; returned loans
+            are excluded. No records are modified.
+    """
+    with transaction(current_app.config["DATABASE"]) as connection:
+        # The loan supplies the due date. The equipment join supplies its name
+        # and asset ID so students can distinguish items with the same name.
+        return connection.execute(
+            """
+            SELECT e.name AS equipment_name, e.asset_id, l.due_date
+            FROM loans AS l
+            JOIN equipment AS e ON e.id = l.equipment_id
+            WHERE l.user_id = ? AND l.status = 'checked_out'
+            ORDER BY l.due_date, l.id
+            """,
+            (student_id,),
+        ).fetchall()
