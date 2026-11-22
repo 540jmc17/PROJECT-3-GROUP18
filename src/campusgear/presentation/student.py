@@ -1,214 +1,319 @@
-# Name: student.py
-# Description: Student Interface of the Presentation Layer. Defines the
-#              "student" Blueprint with the student landing page (/student)
-#              and a student's private records page
-#              (/students/<id>/records). The landing page is a placeholder
-#              that the Requirement 7 owners will extend with borrowing and
-#              reservation options. The records page is protected by
-#              @owner_or_staff_required (Requirement 6): a student sees only
-#              their own records, staff may open any student's.
-# Programmer: Zema Samuel
-# Dates: November 7, 2026
-# Revisions: 
-#          November 19, 2026 - Jake Crawford / John Pannell:
-#          Added active loans and due-date display (Requirement 16).
-#          Added the reservation form and submission route
-#          (Requirement 8). Added reservation cancellation and
-#          success/error feedback (Requirement 25). Added more documentation 
-#          and in-line comments. Substantantial coding assistance with ChatGPT Pro-6
-#          was used to assist with generating, developing, and debugging portions of 
-#          the application's code, such as Flask routes, database interactions, reservation
-#          management, and application functionality.
-# Preconditions: The Blueprint is registered by create_app(); the database has
-#                been initialized. The user is signed in (decorators redirect
-#                to /login otherwise).
-# Postconditions: Only a student (for /student) or the owning student / any
-#                 staff member (for the records page) receives a 200 response.
-#                 No password hash is rendered.
-# Errors: Not signed in -> 302 to /login. Wrong role or another student's id
-#         -> 403. A staff request for an id that is not a student -> 404.
+"""
+Module Name: student.py
+Description:
+    Student Interface of CampusGear's Presentation Layer. Defines the student
+    landing page (Requirement 7), private records page (Requirement 6), active
+    loans page (Requirement 16), and reservation forms, list, and cancellation
+    action (Requirements 8, 9, 10, 15, and 25).
+
+    Both reservation entry points are preserved: a form for one catalog item
+    and a form with an equipment selector. All reservation writes use the
+    shared business layer, and all POST handlers validate the CSRF token.
+Inputs:
+    HTTP requests, authenticated account details, URL identifiers, and form
+    fields. The catalog form supplies start_date and end_date; the equipment
+    selector supplies equipment_id, pickup_date, and return_date. Both forms
+    and the cancellation action require csrf_token.
+Outputs:
+    Rendered student pages, form errors, and redirects with success or error
+    messages. Catalog bookings and cancellations return to the student's
+    records page; bookings from the equipment selector return to the list.
+Implementation Authors:
+    Zema Samuel: original student interface and reservation list/form routes.
+    Jake Crawford and John Pannell: catalog reservation form, active loans,
+    and reservation confirmation workflow.
+Creation Date:
+    November 7, 2026: original student interface.
+Revisions:
+    November 19, 2026: Jake Crawford and John Pannell added Requirements 8,
+    16, and 25 with substantial ChatGPT Pro-6 code-drafting assistance.
+    November 21, 2026: Zema Samuel added routes for Requirements 9, 10, and 15.
+    November 22, 2026: combined the branch implementations, aligned business
+    function calls, and standardized documentation with OpenAI Codex.
+Review Status:
+    Zema Samuel reviewed his original branch implementation.
+    The integrated version and revised documentation await team review.
+Documentation Attribution:
+    Original documentation: Zema Samuel, Jake Crawford, and John Pannell.
+    Combined prologue and revised comments/docstrings: OpenAI Codex-assisted.
+External Sources / AI Attribution:
+    Original student workflow additions credit ChatGPT Pro-6 assistance.
+    Integration and documentation revisions were assisted by OpenAI Codex.
+    Uses Flask blueprints, Jinja2 templates, SQLite, and existing project helpers.
+Code Origin:
+    Combined Sprint 1 and Sprint 2 implementations for EECS 581 Project 3.
+Preconditions:
+    create_app() registers the blueprint and initializes the database.
+    The merged reservation_management.py and templates from both branches
+    are present. Authentication decorators provide trusted account details.
+Postconditions:
+    Student-only routes reject staff and unauthenticated access. Private
+    records are visible only to their owner or staff. Success messages are
+    issued after writes commit, and no password hashes are rendered.
+Errors:
+    Guests are redirected to login. Unauthorized accounts receive HTTP 403;
+    missing records receive HTTP 404. Invalid CSRF tokens and reservation
+    submissions receive HTTP 400. Handled creation database errors receive
+    HTTP 500. Cancellation errors are shown after a redirect.
+"""
 
 from sqlite3 import Error as DatabaseError
 
-from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
+from flask import (
+    Blueprint, abort, current_app, flash, redirect, render_template, request, url_for,
+)
 
 from ..business_logic.loan_management import get_active_loans
 from ..business_logic.reservation_management import (
-    ReservationError, cancel_reservation, create_reservation, reservation_today,
+    ReservationError, cancel_reservation, create_reservation,
+    get_reservations_for_user, reservation_today,
 )
-from ..business_logic.user_access import (csrf_is_valid, current_user, get_student_records,
-                                          owner_or_staff_required,
-                                          role_required)
+from ..business_logic.user_access import (
+    csrf_is_valid, current_user, get_student_records,
+    owner_or_staff_required, role_required,
+)
 from ..config import ROLE_STUDENT
 from ..db import get_record, transaction
 
-# Group these routes under a Blueprint named "student".
-# Endpoint names include this prefix, such as "student.student_records".
+
+# Blueprint endpoints use the "student." prefix in templates and redirects.
 student_bp = Blueprint("student", __name__)
 
 
-# GET requests display pages. This route opens the student landing page.
+# ---------------------------------------------------------------------------
+# Requirements 6 and 7: Student home and private records
+# ---------------------------------------------------------------------------
+
 @student_bp.get("/student")
-# Check the user's role before allowing the function to run.
 @role_required(ROLE_STUDENT)
 def student_home():
-    """Placeholder Student Interface; students land here after login."""
-
-    # Render the page with the signed-in user's information.
-    # active_page tells the template which navigation section is active.
+    """Render the student landing page for the authenticated student."""
     return render_template("student_home.html", active_page="student",
                            user=current_user())
 
 
-# Requirement 16: Display checked-out equipment and its due dates.
-# ChatGPT (GPT-6) assisted with generating and debugging.
-@student_bp.get("/student/loans/active")
-@role_required(ROLE_STUDENT)
-def active_loans():
-    """Show due dates for equipment checked out by the signed-in student."""
-
-    # Use the signed-in user's ID instead of an ID supplied in the URL.
-    # This prevents a student from choosing another student's loan list.
-    loans = get_active_loans(current_user()["id"])
-
-    # Pass the retrieved loans to the template for display.
-    return render_template("active_loans.html", active_page="student", loans=loans)
-
-
-# Flask reads the integer in the URL and passes it as student_id.
-# Example: /students/3/records calls student_records(student_id=3).
 @student_bp.get("/students/<int:student_id>/records")
-# Only the student who owns these records, or a staff member, may access them.
 @owner_or_staff_required("student_id")
 def student_records(student_id):
-    """A student's private reservations and loans (owner or staff only)."""
+    """Render a student's private reservations and loans for the owner or staff.
 
-    # Retrieve the requested student's information, reservations, and loans.
+    Args:
+        student_id (int): The student ID supplied by the URL.
+
+    Returns:
+        str: The rendered records page after the decorator authorizes access.
+    """
     data = get_student_records(student_id)
-
-    # Stop with a "Not Found" response if no student records were found.
     if data is None:
         abort(404)
 
-    # **data unpacks the dictionary into named template arguments.
-    # For example, {"loans": loan_list} becomes loans=loan_list.
+    # Unpack the retrieved student, reservations, and loans into template values.
     return render_template("student_records.html", active_page="student",
                            user=current_user(), **data)
 
 
-# Requirement 8: GET displays the form; POST submits the selected dates.
-# The equipment ID comes from the URL. ChatGPT (GPT-6) assisted with generating and debugging.
+# ---------------------------------------------------------------------------
+# Requirement 16: Display active loans and due dates
+# ---------------------------------------------------------------------------
+
+@student_bp.get("/student/loans/active")
+@role_required(ROLE_STUDENT)
+def active_loans():
+    """Render active equipment loans and due dates for the signed-in student."""
+    # Use the authenticated ID so a URL or form cannot select another borrower.
+    loans = get_active_loans(current_user()["id"])
+    return render_template("active_loans.html", active_page="student", loans=loans)
+
+
+# ---------------------------------------------------------------------------
+# Requirement 10: Display the student's reservation list
+# ---------------------------------------------------------------------------
+
+@student_bp.get("/student/reservations")
+@role_required(ROLE_STUDENT)
+def student_reservations():
+    """Render only reservations belonging to the authenticated student."""
+    user = current_user()
+    reservations = get_reservations_for_user(user["id"], user["role"])
+    return render_template("reservations.html", active_page="student",
+                           user=user, reservations=reservations, is_staff=False)
+
+
+# ---------------------------------------------------------------------------
+# Requirements 8, 9, and 25: Reserve an item from the equipment catalog
+# ---------------------------------------------------------------------------
+
 @student_bp.route("/catalog/<int:equipment_id>/reserve", methods=["GET", "POST"])
 @role_required(ROLE_STUDENT)
 def reserve_equipment(equipment_id):
-    """Show the date form and save valid reservations for the signed-in student."""
+    """Display one item's date form or submit a reservation for that item.
 
-    # Before processing a submitted form, check its CSRF token.
-    # This helps protect against another website submitting an unwanted
-    # request using the student's signed-in browser session.
+    Args:
+        equipment_id (int): The catalog item's ID supplied by the URL.
+
+    Returns:
+        str, tuple, or Response: The form, a form with an error status, or a
+            redirect to the student's records after a successful booking.
+    """
+    # Check CSRF before processing a submitted form or looking up the item.
     if request.method == "POST" and not csrf_is_valid():
         abort(400)
 
-    # Open a managed database transaction using the application's
-    # configured database path, then look up the requested equipment.
     with transaction(current_app.config["DATABASE"]) as connection:
         equipment = get_record(connection, "equipment", equipment_id)
-
-    # There is no reservation form to show if this equipment does not exist.
     if equipment is None:
         abort(404)
 
-    # Get the signed-in student and the date used for reservation validation.
     student = current_user()
     today = reservation_today()
-
-    # request.form contains submitted form fields.
-    # Keeping it allows the template to redisplay entered values on errors.
     form = request.form
-
-    # Start with no error and a normal HTTP 200 response.
     error = None
     status = 200
 
-    # Process the dates only when the student submits the form.
     if request.method == "POST":
         try:
-            # Delegate date validation and saving to the business layer.
-            # Ownership comes from the signed-in student, not a form field.
-            # .get(..., "") supplies an empty string if a date is missing.
-            create_reservation(student["id"], equipment_id, form.get("start_date", ""),
-                               form.get("end_date", ""), today=today)
-
+            # Ownership comes from the session; the business layer rechecks dates
+            # and availability when saving. Missing fields become empty strings.
+            create_reservation(
+                student_id=student["id"], equipment_id=equipment_id,
+                start_date=form.get("start_date", ""),
+                end_date=form.get("end_date", ""), today=today,
+            )
         except ReservationError as exc:
-            # A reservation rule rejected the submission.
-            # Redisplay the form with its error message and HTTP 400.
             error, status = str(exc), 400
-
         except DatabaseError:
-            # Log technical details for debugging, but show the student
-            # a general retry message instead of internal database details.
+            # Log technical details while displaying a general retry message.
             current_app.logger.exception("Could not save reservation")
             error, status = "Could not save your reservation. Please try again.", 500
-
         else:
-            # This else belongs to try/except: it runs only if the call
-            # completed without raising an exception.
-            # Confirm success after the business operation has committed.
+            # The transaction has committed. Redirect with GET to avoid resubmission.
             flash("Reservation created successfully.", "success")
-
-            # url_for builds the URL for this student's records page.
-            # HTTP 303 tells the browser to follow the redirect with GET,
-            # so refreshing that page does not repeat the form submission.
             return redirect(url_for("student.student_records", student_id=student["id"]),
                             code=303)
-
-    # This branch runs for GET requests only.
-    # Do not display the form for equipment that is unavailable.
-    # POST availability checks are delegated to create_reservation().
     elif equipment["status"] != "available":
+        # Do not offer the initial form for an item that is already unavailable.
         abort(404)
 
-    # Display the initial form or redisplay it after a handled POST error.
-    # isoformat() converts today's date to YYYY-MM-DD for the template.
-    # Returning (rendered_page, status) sets the HTTP response status.
+    # Retain submitted values when showing a validation or database error.
     return render_template("reserve_equipment.html", active_page="catalog",
                            equipment=equipment, today=today.isoformat(),
                            form=form, error=error), status
 
 
-# Accept cancellations through POST, since cancellation changes stored data.
-# ChatGPT (GPT-6) assisted with generating and debugging
-@student_bp.post("/student/reservations/<int:reservation_id>/cancel")
-@role_required(ROLE_STUDENT)
-def cancel_student_reservation(reservation_id):
-    """Cancel the student's reservation and report the result on their records page."""
+# ---------------------------------------------------------------------------
+# Requirements 8, 9, and 25: Reserve an item using the equipment selector
+# ---------------------------------------------------------------------------
 
-    # Reject the cancellation request if the CSRF token is missing or invalid.
+@student_bp.get("/student/reservations/new")
+@role_required(ROLE_STUDENT)
+def new_reservation():
+    """Render the equipment selector and date fields for a new reservation."""
+    with transaction(current_app.config["DATABASE"]) as conn:
+        equipment_list = conn.execute(
+            "SELECT id, name, asset_id, category FROM equipment "
+            "WHERE status = 'available' ORDER BY name"
+        ).fetchall()
+
+    # A catalog link may preselect an item; POST validation still checks that item.
+    preselected_id = request.args.get("equipment_id", "")
+    return render_template(
+        "reservation_form.html", active_page="student", user=current_user(),
+        equipment_list=[dict(item) for item in equipment_list],
+        form={"equipment_id": preselected_id}, error=None,
+        today=reservation_today().isoformat(),
+    )
+
+
+@student_bp.post("/student/reservations/new")
+@role_required(ROLE_STUDENT)
+def create_reservation_route():
+    """Save an equipment-selector booking or redisplay the form with an error."""
     if not csrf_is_valid():
         abort(400)
 
-    # Use the signed-in student's ID when requesting the cancellation.
-    student_id = current_user()["id"]
+    user = current_user()
+    today = reservation_today()
+    form = request.form
+    equipment_id_raw = form.get("equipment_id", "").strip()
+    pickup_date = form.get("pickup_date", "").strip()
+    return_date = form.get("return_date", "").strip()
+    error = None
+    status = 400
 
+    # Reject a missing or nonnumeric selection before calling the business layer.
     try:
-        # The business layer checks ownership and cancellation eligibility,
-        # then updates the reservation. Cancellation is a status change,
-        # rather than deleting the reservation record here.
-        cancel_reservation(student_id, reservation_id)
+        equipment_id = int(equipment_id_raw)
+    except (ValueError, TypeError):
+        error = "Please select an equipment item."
+    else:
+        try:
+            # Map this form's field names to the merged business function's arguments.
+            create_reservation(
+                student_id=user["id"], equipment_id=equipment_id,
+                start_date=pickup_date, end_date=return_date, today=today,
+            )
+        except ReservationError as exc:
+            error = str(exc)
+        except DatabaseError:
+            current_app.logger.exception("Could not save reservation")
+            error, status = "Could not save your reservation. Please try again.", 500
+        else:
+            # Confirm only a committed booking, then show the student's reservations.
+            flash("Your reservation was created successfully.", "success")
+            return redirect(url_for("student.student_reservations"), code=303)
 
+    # Refresh available choices and preserve the submitted fields after a failed POST.
+    with transaction(current_app.config["DATABASE"]) as conn:
+        equipment_list = conn.execute(
+            "SELECT id, name, asset_id, category FROM equipment "
+            "WHERE status = 'available' ORDER BY name"
+        ).fetchall()
+    return render_template(
+        "reservation_form.html", active_page="student", user=user,
+        equipment_list=[dict(item) for item in equipment_list],
+        form=form, error=error, today=today.isoformat(),
+    ), status
+
+
+# ---------------------------------------------------------------------------
+# Requirements 15 and 25: Cancel a reservation and display the result
+# ---------------------------------------------------------------------------
+
+@student_bp.post("/student/reservations/<int:reservation_id>/cancel")
+@role_required(ROLE_STUDENT)
+def cancel_student_reservation(reservation_id):
+    """Cancel an eligible reservation and redirect to the student's records.
+
+    Args:
+        reservation_id (int): The reservation ID supplied by the URL.
+
+    Returns:
+        Response: A redirect to the signed-in student's records with feedback.
+    """
+    if not csrf_is_valid():
+        abort(400)
+
+    student_id = current_user()["id"]
+    try:
+        # Keyword arguments prevent the opposite ID orders in the source branches
+        # from being confused. The business layer checks ownership and eligibility.
+        cancel_reservation(student_id=student_id, reservation_id=reservation_id)
     except ReservationError as exc:
-        # Save the reason cancellation was rejected for display after redirect.
         flash(str(exc), "error")
-
     except DatabaseError:
-        # Log the database failure and give the student a retry message.
         current_app.logger.exception("Could not cancel reservation")
         flash("Could not cancel your reservation. Please try again.", "error")
-
     else:
-        # Requirement 25: Confirm cancellation only after the operation succeeds.
+        # The business transaction must succeed before a confirmation is shown.
         flash("Reservation canceled successfully.", "success")
 
-    # For success or either handled error, return to this student's records.
-    # flash() stores feedback for the template to display after the redirect.
     return redirect(url_for("student.student_records", student_id=student_id), code=303)
+
+
+# Zema's reservations.html uses this endpoint name; student_records.html uses
+# cancel_student_reservation. This alias supports url_for() without registering
+# another request handler for the same POST URL.
+student_bp.add_url_rule(
+    "/student/reservations/<int:reservation_id>/cancel",
+    endpoint="cancel_reservation_route", methods=["POST"], build_only=True,
+)

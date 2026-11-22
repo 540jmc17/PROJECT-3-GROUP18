@@ -1,18 +1,21 @@
-<!--
-Name: staff_home.html
-Description: Placeholder Staff Interface shown after a staff member signs in.
-             The Requirement 7 owners will add the equipment management
-             options here.
-Programmer: Zema Samuel
-Dates: November 7, 2026
-Revisions: November 8, 2026 - Ahmed Gharib added the Add equipment link to the
-           registration form (Req 2), with code-drafting assistance from
-           Claude (Anthropic). Reviewed by Ahmed Gharib.
-Preconditions: Rendered by presentation/staff.py for a signed-in staff member;
-               `user` holds the id, role and name from the session.
-Postconditions: Displays a greeting and a link to the catalog.
-Errors: Jinja2 autoescaping is on for all interpolated values.
--->
+{#
+Module Name: staff_home.html
+Description: Displays the staff greeting and equipment menu.
+
+Inputs: The signed-in staff member's session details.
+Outputs: Links to inventory, equipment registration, and checkout.
+
+Implementation authors: Zema Samuel (staff interface) and Ahmed Gharib
+(registration link, with code-drafting assistance from Claude (Anthropic)).
+The Req 7 label was carried over from Pranav and Cameren's sprint1-db-roles
+branch with OpenAI Codex assistance. Pranav Reddy authored the checkout link.
+Creation Date: November 7, 2026.
+Revisions: November 8, 2026 (registration link). November 19, 2026 (checkout link).
+Reviewed by: Ahmed Gharib (registration link) and Pranav Reddy (checkout link).
+Documentation author: Pranav Reddy (checkout revision).
+External Sources / Attribution: Uses Flask URL generation and Jinja.
+Code Origin: EECS 581 Project 3, Requirements 2, 7, and 11/12.
+#}
 {% extends "base.html" %}
 {% block title %}Staff Interface{% endblock %}
 {% block content %}
@@ -28,7 +31,7 @@ Errors: Jinja2 autoescaping is on for all interpolated values.
     <div class="feature-grid">
       <a class="feature-card" href="{{ url_for('site.catalog') }}">
         <span class="feature-icon" aria-hidden="true">01</span>
-        <h3>Equipment Catalog</h3>
+        <h3>View inventory</h3>
         <p>Review the equipment inventory.</p>
         <span class="feature-link">View catalog <span aria-hidden="true">&rarr;</span></span>
       </a>
@@ -37,6 +40,18 @@ Errors: Jinja2 autoescaping is on for all interpolated values.
         <h3>Add equipment</h3>
         <p>Register a new item with a unique asset ID.</p>
         <span class="feature-link">Register equipment <span aria-hidden="true">&rarr;</span></span>
+      </a>
+      <a class="feature-card" href="{{ url_for('staff.staff_reservations') }}">
+        <span class="feature-icon" aria-hidden="true">03</span>
+        <h3>All reservations</h3>
+        <p>View upcoming and active reservations from all students.</p>
+        <span class="feature-link">View reservations <span aria-hidden="true">&rarr;</span></span>
+      </a>
+      <a class="feature-card" href="{{ url_for('staff.checkout') }}">
+        <h3>Check out equipment</h3>
+      </a>
+      <a class="feature-card" href="{{ url_for('staff.returns') }}">
+        <h3>Return equipment</h3>
       </a>
     </div>
   </div>

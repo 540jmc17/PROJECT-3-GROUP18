@@ -78,7 +78,7 @@ signed-in students with substantial code-drafting assistance from ChatGPT Pro-6 
       <p>{{ available_count }} of {{ items|length }} items available.</p>
       <table class="data-table">
         <thead>
-          <tr><th>Name</th><th>Category</th><th>Description</th><th>Asset ID</th><th>Availability</th></tr>
+          <tr><th>Name</th><th>Category</th><th>Description</th><th>Asset ID</th><th>Availability</th><th></th></tr>
         </thead>
         <tbody>
           {% for item in items %}
@@ -97,6 +97,14 @@ signed-in students with substantial code-drafting assistance from ChatGPT Pro-6 
                 {% endif %}
               {% else %}
                 <span class="status-badge status-unavailable">Unavailable ({{ item.status|replace('_', ' ') }})</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if current_user and current_user.role == 'student' and item.status == 'available' %}
+                <a class="button button-primary"
+                   href="{{ url_for('student.new_reservation') }}?equipment_id={{ item.id }}">
+                  Reserve
+                </a>
               {% endif %}
             </td>
           </tr>
