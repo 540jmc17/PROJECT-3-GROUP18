@@ -6,7 +6,10 @@ Description: Private records page showing one student's reservations and
              hash.
 Programmer: Zema Samuel
 Dates: November 7, 2026
-Revisions: None
+Revisions: 
+- November 19, 2026 - Jake Crawford/John Pannell added reservation action
+feedback using flashed messages and added cancellation controls for the student 
+with substantial code-drafting assistance from ChatGPT Pro-6.
 Preconditions: Rendered by presentation/student.py with `student` (id, name,
                email), `reservations` and `loans` (lists of dictionaries).
 Postconditions: Displays two tables, or an empty-state sentence for each
@@ -25,13 +28,31 @@ Errors: Jinja2 autoescaping is on for all interpolated values.
 </section>
 <section class="section">
   <div class="shell">
+    {# Display the result once after the POST redirects here. #}
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+      <p class="alert alert-{{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">{{ message }}</p>
+    {% endfor %}
+
+    {% set can_cancel = user.role == 'student' and user.id == student.id %}
     <h2>Reservations</h2>
     {% if reservations %}
     <table class="data-table">
-      <thead><tr><th>Equipment</th><th>Asset ID</th><th>Pickup</th><th>Return</th><th>Status</th></tr></thead>
+      <thead><tr><th>Equipment</th><th>Asset ID</th><th>Pickup</th><th>Return</th><th>Status</th>{% if can_cancel %}<th>Action</th>{% endif %}</tr></thead>
       <tbody>
       {% for r in reservations %}
-        <tr><td>{{ r.equipment_name }}</td><td>{{ r.asset_id }}</td><td>{{ r.pickup_date }}</td><td>{{ r.return_date }}</td><td>{{ r.status }}</td></tr>
+        <tr><td>{{ r.equipment_name }}</td><td>{{ r.asset_id }}</td><td>{{ r.pickup_date }}</td><td>{{ r.return_date }}</td><td>{{ r.status }}</td>
+          {% if can_cancel %}
+            <td>
+              {# The server repeats the ownership and status checks on POST. #}
+              {% if r.status == 'reserved' %}
+                <form method="post" action="{{ url_for('student.cancel_student_reservation', reservation_id=r.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="button button-secondary" aria-label="Cancel reservation for {{ r.equipment_name }}">Cancel</button>
+                </form>
+              {% endif %}
+            </td>
+          {% endif %}
+        </tr>
       {% endfor %}
       </tbody>
     </table>

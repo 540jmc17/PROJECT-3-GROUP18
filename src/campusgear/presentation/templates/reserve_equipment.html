@@ -1,0 +1,65 @@
+<!--
+Name: reserve_equipment.html
+Description: Student Equipment Reservation page of the Presentation Layer.
+             Displays the selected equipment's name and asset ID and
+             provides a form for students to choose a reservation start
+             date and end date. The form uses date inputs and preserves
+             previously entered dates when validation errors occur.
+             Displays server-side validation messages when a reservation
+             cannot be submitted. Requirement #8 (Select Reservation Dates).
+Programmer: Jake Crawford and John Pannell, with substantial code-drafting assistance from ChatGPT Pro-6.
+Dates: November 19, 2026
+Revisions: None
+Preconditions: The student reservation route must render the template with
+               the selected equipment, the current date, and the form data.
+               A CSRF token must be available. The student must be signed in
+               and authorized to access the reservation workflow.
+Postconditions: Displays the selected equipment and a reservation form with
+                start-date and end-date fields. Submits the selected dates
+                to the reservation route using POST. Previously entered
+                dates are retained when the form is returned with an error.
+                Provides a link back to the equipment catalog.
+Errors: Missing equipment information or required template variables may
+        prevent the page from rendering correctly. Invalid reservation dates
+        or unavailable equipment are handled by the server-side validation
+        logic and displayed through the error message variable.
+-->
+
+{% extends "base.html" %}
+{% block title %}Reserve {{ equipment.name }}{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div class="shell">
+    <h1>Reserve {{ equipment.name }}</h1>
+    <p>Asset ID {{ equipment.asset_id }}</p>
+  </div>
+</section>
+<section class="section">
+  <div class="shell">
+    <div class="auth-card wide-card">
+      {# Show the validation message when the server returns the form. #}
+      {% if error %}<p class="alert alert-error" role="alert">{{ error }}</p>{% endif %}
+      <form method="post" action="{{ url_for('student.reserve_equipment', equipment_id=equipment.id) }}">
+        {# Submit the session token that the route checks. #}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-field">
+          {# Use a native date picker and keep the previous value after an error. #}
+          <label for="start_date">Start date</label>
+          <input type="date" id="start_date" name="start_date" required
+                 min="{{ today }}" value="{{ form.get('start_date', '') }}">
+        </div>
+        <div class="form-field">
+          <label for="end_date">End date</label>
+          <input type="date" id="end_date" name="end_date" required
+                 min="{{ today }}" value="{{ form.get('end_date', '') }}"
+                 aria-describedby="date-range-help">
+          {# The server checks that the end date comes after the start date. #}
+          <p id="date-range-help">Choose an end date after the start date.</p>
+        </div>
+        <button type="submit" class="button button-primary">Reserve equipment</button>
+        <a class="button button-secondary" href="{{ url_for('site.catalog') }}">Back to catalog</a>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}
