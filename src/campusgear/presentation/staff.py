@@ -4,7 +4,8 @@ Description:
     Staff Interface of CampusGear's Presentation Layer. Defines the staff
     landing page (Requirement 7), equipment registration (Requirement 2),
     reservation list (Requirement 10), reservation and direct checkout
-    (Requirements 11 and 12), and equipment returns (Requirement 13).
+    (Requirements 11 and 12), equipment returns (Requirement 13), and the
+    on-screen return confirmation (Requirement 29).
 
     Staff-role decorators protect every route (Requirement 6). POST handlers
     validate CSRF tokens before delegating writes to the business layer.
@@ -19,6 +20,8 @@ Implementation Authors:
     Ahmed (Mado) Gharib: equipment registration, with substantial
     code-drafting assistance from Claude (Anthropic).
     OpenAI Codex: original staff checkout implementation for Pranav Reddy.
+    Karim Lakhani and Ahmed Gharib: return confirmation message
+    (Requirement 29), with Claude (Anthropic) code-drafting assistance.
 Creation Date:
     November 7, 2026: original staff interface.
 Revisions:
@@ -27,6 +30,8 @@ Revisions:
     November 20, 2026: Requirement 13 returns added with OpenAI Codex assistance.
     November 22, 2026: preserved the reservation-list import and route while
     combining branches; standardized documentation with OpenAI Codex assistance.
+    November 22, 2026: Karim Lakhani and Ahmed Gharib made the return
+    confirmation name the equipment and return date (Requirement 29).
 Review Status:
     Ahmed Gharib reviewed equipment registration; Pranav Reddy reviewed checkout.
 Documentation Attribution:
@@ -173,12 +178,15 @@ def returns():
         if not csrf_is_valid():
             abort(400)
         try:
-            return_equipment(request.form)
+            saved = return_equipment(request.form)
         except ReturnError as err:
             error = str(err)
         else:
-            # Confirm only after the loan and related status updates commit.
-            flash("Equipment return recorded.", "success")
+            # Requirement 29: confirm only after the loan and related status
+            # updates commit, naming the item and date read back from the database.
+            flash(f"Equipment return recorded. {saved['equipment_name']} "
+                  f"({saved['asset_id']}) was returned on {saved['return_date']}.",
+                  "success")
             return redirect(url_for("staff.returns"))
 
     # Preserve return form values on errors and refresh the active-loan choices.

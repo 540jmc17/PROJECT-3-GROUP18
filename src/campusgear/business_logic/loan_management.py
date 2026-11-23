@@ -4,13 +4,16 @@ Description:
     Loan Management component of CampusGear's Business Logic Layer. Handles
     checkout from a reservation (Requirement 11), direct checkout without a
     reservation (Requirement 12), equipment returns (Requirement 13), and
-    retrieval of active student loans and due dates (Requirement 16).
+    retrieval of active student loans and due dates (Requirement 16),
+    student borrowing history (Requirement 26), and the details used in the
+    staff return confirmation message (Requirement 29).
 Inputs:
     Checkout and return form fields, authenticated student IDs for loan
     retrieval, and the Flask application's DATABASE configuration value.
 Outputs:
     Staff form choices, saved loan records, updated equipment/reservation
-    statuses, and a student's active equipment loans ordered by due date.
+    statuses, a student's active equipment loans ordered by due date, a
+    student's full borrowing history, and confirmation details for a return.
 Implementation Authors:
     Pranav Reddy: staff checkout and returns, with OpenAI Codex assistance.
     Jake Crawford and John Pannell: active-loan and due-date retrieval, with
@@ -21,6 +24,9 @@ Revisions:
     November 20, 2026: Requirement 13 returns added with OpenAI Codex assistance.
     November 22, 2026: combined staff and student loan functionality and
     standardized comments and docstrings with OpenAI Codex assistance.
+    November 22, 2026: Karim Lakhani and Ahmed Gharib added Requirement 26
+    (get_borrowing_history) and Requirement 29 (return_equipment now returns
+    the saved equipment name and return date) with Claude assistance.
 Review Status:
     Pranav Reddy reviewed the original staff implementation.
     The integrated version and revised documentation await team review.
@@ -43,7 +49,8 @@ Postconditions:
     'checked_out'. Return marks the loan 'returned', records the return date,
     updates item condition/availability, and completes a linked reservation
     when its status is 'checked_out'. Related writes commit or roll back
-    together. Active-loan retrieval reads records without modifying them.
+    together. Active-loan and borrowing-history retrieval read records
+    without modifying them.
 Errors:
     Invalid or ineligible checkouts raise CheckoutError. Invalid or ineligible
     returns raise ReturnError. Configuration and database errors propagate to
@@ -228,7 +235,9 @@ def return_equipment(form):
             condition ('good', 'damaged', or 'needs_repair').
 
     Returns:
-        None: The return date and related status changes have been committed.
+        dict: equipment_name, asset_id, and return_date for the saved return.
+            The values come from the database, not the form, and are returned
+            only after the transaction commits (used by Requirement 29).
 
     Raises:
         ReturnError: If the date or condition is invalid, the loan is not an
@@ -249,9 +258,13 @@ def return_equipment(form):
     with transaction(current_app.config["DATABASE"]) as connection:
         # Lock before reading so a repeat or competing return cannot save twice.
         connection.execute("BEGIN IMMEDIATE")
+        # Join the equipment so the confirmation names the item on the saved loan.
         loan = connection.execute("""
-            SELECT id, equipment_id, reservation_id, checkout_date FROM loans
-            WHERE id = ? AND status = 'checked_out' AND actual_return_date IS NULL
+            SELECT l.id, l.equipment_id, l.reservation_id, l.checkout_date,
+                   e.name AS equipment_name, e.asset_id
+            FROM loans AS l
+            JOIN equipment AS e ON e.id = l.equipment_id
+            WHERE l.id = ? AND l.status = 'checked_out' AND l.actual_return_date IS NULL
         """, (form.get("loan_id"),)).fetchone()
         if loan is None:
             raise ReturnError("Select an active loan that has not already been returned.")
@@ -270,6 +283,11 @@ def return_equipment(form):
                 UPDATE reservations SET status = 'completed'
                 WHERE id = ? AND status = 'checked_out'
             """, (loan["reservation_id"],))
+
+    # Requirement 29: reaching this line means the transaction committed, so
+    # the caller can safely confirm the return. A failure above raises instead.
+    return {"equipment_name": loan["equipment_name"], "asset_id": loan["asset_id"],
+            "return_date": return_date}
 
 
 # ---------------------------------------------------------------------------
@@ -297,6 +315,39 @@ def get_active_loans(student_id):
             JOIN equipment AS e ON e.id = l.equipment_id
             WHERE l.user_id = ? AND l.status = 'checked_out'
             ORDER BY l.due_date, l.id
+            """,
+            (student_id,),
+        ).fetchall()
+
+
+# ---------------------------------------------------------------------------
+# Requirement 26: Student borrowing history
+# ---------------------------------------------------------------------------
+
+def get_borrowing_history(student_id):
+    """Retrieve every loan a student has had, newest checkout first.
+
+    Args:
+        student_id (int): The authenticated student's user ID.
+
+    Returns:
+        list: SQLite rows containing equipment_name, asset_id, checkout_date,
+            due_date, actual_return_date, and status. Returned loans carry
+            their return date; active loans keep actual_return_date as NULL
+            and status 'checked_out', so they are never shown as returned.
+            No records are modified.
+    """
+    with transaction(current_app.config["DATABASE"]) as connection:
+        # Filter by the borrower on the loan itself, so only this student's
+        # records are read. The equipment join supplies the item name.
+        return connection.execute(
+            """
+            SELECT e.name AS equipment_name, e.asset_id, l.checkout_date,
+                   l.due_date, l.actual_return_date, l.status
+            FROM loans AS l
+            JOIN equipment AS e ON e.id = l.equipment_id
+            WHERE l.user_id = ?
+            ORDER BY l.checkout_date DESC, l.id DESC
             """,
             (student_id,),
         ).fetchall()

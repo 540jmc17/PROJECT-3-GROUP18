@@ -3,8 +3,9 @@ Module Name: student.py
 Description:
     Student Interface of CampusGear's Presentation Layer. Defines the student
     landing page (Requirement 7), private records page (Requirement 6), active
-    loans page (Requirement 16), and reservation forms, list, and cancellation
-    action (Requirements 8, 9, 10, 15, and 25).
+    loans page (Requirement 16), borrowing history page (Requirement 26), and
+    reservation forms, list, and cancellation action (Requirements 8, 9, 10,
+    15, and 25).
 
     Both reservation entry points are preserved: a form for one catalog item
     and a form with an equipment selector. All reservation writes use the
@@ -22,6 +23,8 @@ Implementation Authors:
     Zema Samuel: original student interface and reservation list/form routes.
     Jake Crawford and John Pannell: catalog reservation form, active loans,
     and reservation confirmation workflow.
+    Karim Lakhani and Ahmed Gharib: borrowing history page (Requirement 26),
+    with Claude (Anthropic) code-drafting assistance.
 Creation Date:
     November 7, 2026: original student interface.
 Revisions:
@@ -30,6 +33,8 @@ Revisions:
     November 21, 2026: Zema Samuel added routes for Requirements 9, 10, and 15.
     November 22, 2026: combined the branch implementations, aligned business
     function calls, and standardized documentation with OpenAI Codex.
+    November 22, 2026: Karim Lakhani and Ahmed Gharib added the Requirement 26
+    borrowing history route.
 Review Status:
     Zema Samuel reviewed his original branch implementation.
     The integrated version and revised documentation await team review.
@@ -63,7 +68,7 @@ from flask import (
     Blueprint, abort, current_app, flash, redirect, render_template, request, url_for,
 )
 
-from ..business_logic.loan_management import get_active_loans
+from ..business_logic.loan_management import get_active_loans, get_borrowing_history
 from ..business_logic.reservation_management import (
     ReservationError, cancel_reservation, create_reservation,
     get_reservations_for_user, reservation_today,
@@ -123,6 +128,20 @@ def active_loans():
     # Use the authenticated ID so a URL or form cannot select another borrower.
     loans = get_active_loans(current_user()["id"])
     return render_template("active_loans.html", active_page="student", loans=loans)
+
+
+# ---------------------------------------------------------------------------
+# Requirement 26: Display the student's borrowing history
+# ---------------------------------------------------------------------------
+
+@student_bp.get("/student/loans/history")
+@role_required(ROLE_STUDENT)
+def borrowing_history():
+    """Render every past and current loan for the signed-in student."""
+    # Use the authenticated ID only; no URL or query value can choose the
+    # borrower, so one student cannot open another student's history.
+    loans = get_borrowing_history(current_user()["id"])
+    return render_template("borrowing_history.html", active_page="student", loans=loans)
 
 
 # ---------------------------------------------------------------------------

@@ -7,6 +7,8 @@
 #              failure during both creation and cancellation.
 # Programmer: Jake Crawford and John Pannell, with substantial code-drafting assistance from ChatGPT Pro-6.
 # Dates: November 19, 2026
+# Revisions: November 22, 2026 - OpenAI Codex corrected the rollback test's
+#            sample dates so availability validation allows the attempted write.
 # Preconditions: The Flask test client and seeded test database are available.
 #                The seed data includes Student A, a staff account, a checked-out
 #                reservation, and a reservation belonging to Student B.
@@ -144,10 +146,12 @@ def test_write_failure_rolls_back_and_never_confirms(
         client, seeded_app, reservable_item, monkeypatch):
     # Save one reservation before simulating any failures. At the end of
     # the test, this exact reservation should still exist as "reserved".
+    # Keep its dates separate from the attempted November 17-20 booking so
+    # creation reaches the simulated commit failure, not a date conflict.
     with transaction(seeded_app.config["DATABASE"]) as connection:
         reservation_id = insert_record(
             connection, "reservations", user_id=1, equipment_id=reservable_item,
-            pickup_date="2026-11-17", return_date="2026-11-20",
+            pickup_date="2026-11-21", return_date="2026-11-24",
         )
 
     @contextmanager
