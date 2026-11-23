@@ -1,0 +1,45 @@
+{# Requirement 13: staff equipment returns. Implemented with OpenAI Codex assistance. #}
+{% extends "base.html" %}
+{% block title %}Return equipment{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div class="shell"><h1>Return equipment</h1></div>
+</section>
+<section class="section">
+  <div class="shell">
+    <div class="auth-card checkout-card">
+      {% if error %}<p class="alert alert-error" role="alert">{{ error }}</p>{% endif %}
+      {% for message in get_flashed_messages(category_filter=['success']) %}
+        <p class="alert alert-success" role="status">{{ message }}</p>
+      {% endfor %}
+      <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-field">
+          <label for="loan">Active loan</label>
+          <select id="loan" name="loan_id" required>
+            <option value="">{{ 'Select a loan' if loans else 'No active loans' }}</option>
+            {% for loan in loans %}
+              <option value="{{ loan.id }}" {% if form.get('loan_id') == loan.id|string %}selected{% endif %}>Loan #{{ loan.id }} · {{ loan.student_name }} · {{ loan.equipment_name }} ({{ loan.asset_id }}) · {{ loan.checkout_date }} to {{ loan.due_date }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="return-date">Actual return date</label>
+          <input id="return-date" type="date" name="actual_return_date" value="{{ form.get('actual_return_date', '') }}" required>
+        </div>
+        <div class="form-field">
+          <label for="condition">Equipment condition</label>
+          <select id="condition" name="condition" required>
+            <option value="">Select a condition</option>
+            {% for condition in conditions %}
+              <option value="{{ condition }}" {% if form.get('condition') == condition %}selected{% endif %}>{{ condition|replace('_', ' ')|capitalize }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <p>Good equipment becomes available. Damaged equipment or equipment needing repair goes to maintenance.</p>
+        <button class="button button-primary" type="submit" {% if not loans %}disabled{% endif %}>Record return</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

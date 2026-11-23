@@ -1,0 +1,152 @@
+<!--
+Module Name: reservations.html
+
+Description:
+    Reservations page for the CampusGear application.
+    Shared template used for both the student and staff reservation views,
+    controlled by the is_staff boolean passed from the route handler.
+
+    Student view (is_staff=False, Requirement 10):
+        Displays only the signed-in student's own reservations.
+        Shows a Cancel button for any reservation whose status is 'reserved'
+        (Requirement 15).
+
+    Staff view (is_staff=True, Requirement 10):
+        Displays all reservations from every student account.
+        Shows a Student Name column instead of a Cancel button.
+
+    Flash messages from successful actions are shown at the top of the page
+    (Requirement 25).
+
+Inputs:
+    reservations — list of dicts with keys: id, equipment_name, asset_id,
+        pickup_date, return_date, status, student_name.
+    user — dict with id, role, name from the session.
+    is_staff — boolean controlling which columns and actions are shown.
+
+Outputs:
+    HTML page displaying the reservation table, action buttons, and
+    flash messages. The Cancel form POSTs to the cancel_reservation_route
+    with a CSRF token hidden field.
+
+Implementation Author: Zema Samuel.
+Creation Date: November 21, 2026.
+Reviewed by: Zema Samuel.
+Revisions: None.
+Documentation Author: Zema Samuel.
+External Sources / Attribution: Uses Flask url_for(), Jinja2 template
+    inheritance from base.html, and shared CSS from styles.css.
+Code Origin: Newly written for EECS 581 Project 3, Sprint 2,
+    Requirements 10 and 15.
+-->
+{% extends "base.html" %}
+{% block title %}{% if is_staff %}All Reservations{% else %}My Reservations{% endif %}{% endblock %}
+{% block content %}
+
+<section class="page-header">
+  <div class="shell">
+    <span class="eyebrow">CampusGear / {% if is_staff %}Staff{% else %}Student{% endif %}</span>
+    <h1>{% if is_staff %}All Reservations{% else %}My Reservations{% endif %}</h1>
+    <p>
+      {% if is_staff %}
+        All student reservations are listed below.
+      {% else %}
+        Your equipment reservations are listed below.
+      {% endif %}
+    </p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="shell">
+
+    {# Flash messages: success confirmations (Req 25) and errors #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <p class="alert alert-{{ category }}" role="status">{{ message }}</p>
+      {% endfor %}
+    {% endwith %}
+
+    {# Action bar: students get a button to make a new reservation #}
+    {% if not is_staff %}
+      <div style="margin-bottom: 24px;">
+        <a class="button button-primary" href="{{ url_for('student.new_reservation') }}">Reserve equipment</a>
+      </div>
+    {% endif %}
+
+    {% if reservations %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            {% if is_staff %}<th>Student</th>{% endif %}
+            <th>Equipment</th>
+            <th>Asset ID</th>
+            <th>Pickup date</th>
+            <th>Return date</th>
+            <th>Status</th>
+            {% if not is_staff %}<th>Action</th>{% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in reservations %}
+          <tr>
+            {% if is_staff %}
+              <td>{{ r.student_name }}</td>
+            {% endif %}
+            <td>{{ r.equipment_name }}</td>
+            <td>{{ r.asset_id }}</td>
+            <td>{{ r.pickup_date }}</td>
+            <td>{{ r.return_date }}</td>
+            <td>
+              {% if r.status == 'reserved' %}
+                <span class="status-badge status-available">Reserved</span>
+              {% elif r.status == 'checked_out' %}
+                <span class="status-badge" style="color:#1d4e8a;background:#e8f1ff;">Checked out</span>
+              {% elif r.status == 'cancelled' %}
+                <span class="status-badge status-unavailable">Cancelled</span>
+              {% elif r.status == 'completed' %}
+                <span class="status-badge" style="color:#555;background:#f0f0f0;">Completed</span>
+              {% else %}
+                <span class="status-badge">{{ r.status }}</span>
+              {% endif %}
+            </td>
+            {% if not is_staff %}
+            <td>
+              {# Req 15: Cancel button only for reservations still in 'reserved' state #}
+              {% if r.status == 'reserved' %}
+                <form method="post"
+                      action="{{ url_for('student.cancel_reservation_route', reservation_id=r.id) }}"
+                      onsubmit="return confirm('Cancel this reservation for {{ r.equipment_name }}?');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="button button-small button-outline"
+                          style="color:#8a1f2d;border-color:#f3b8bf;">
+                    Cancel
+                  </button>
+                </form>
+              {% else %}
+                <span style="color:var(--muted);font-size:.88rem;">—</span>
+              {% endif %}
+            </td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+    {% else %}
+      <div class="empty-state" role="status">
+        <span class="empty-icon" aria-hidden="true">CG</span>
+        {% if is_staff %}
+          <h2>No reservations yet</h2>
+          <p>No students have made a reservation.</p>
+        {% else %}
+          <h2>No reservations yet</h2>
+          <p>You haven't reserved any equipment. Browse the catalog to get started.</p>
+          <a class="button button-primary" href="{{ url_for('student.new_reservation') }}">Reserve equipment</a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}

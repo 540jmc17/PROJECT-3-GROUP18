@@ -1,0 +1,65 @@
+<!--
+Name: borrowing_history.html
+Description: Student Borrowing History page of the Presentation Layer.
+             Lists every loan the signed-in student has had, newest first,
+             with the equipment name, asset ID, checkout date, and return
+             date. Loans that are still out show "Not yet returned" and the
+             due date instead of a return date, so an active loan is never
+             shown as a completed return. Requirement #26 (View Borrowing History).
+Programmer: Karim Lakhani and Ahmed Gharib, with code-drafting assistance from Claude (Anthropic).
+Dates: November 22, 2026
+Revisions: None
+Preconditions: Rendered by the student.borrowing_history route for a signed-in
+               student. The route passes only that student's loans through the
+               `loans` variable. The shared base.html template is available.
+Postconditions: Displays a table of the student's past and current loans, or a
+                message when the student has never borrowed equipment. Provides
+                a link back to the student homepage.
+Errors: Missing loan fields may prevent the template from rendering correctly.
+        Unauthorized access is handled by the associated student route.
+-->
+
+{% extends "base.html" %}
+{% block title %}Borrowing history{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div class="shell">
+    <h1>Borrowing history</h1>
+  </div>
+</section>
+<section class="section">
+  <div class="shell">
+    {# The route passes only loans owned by the signed-in student. #}
+    {% if loans %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">Equipment</th>
+            <th scope="col">Asset ID</th>
+            <th scope="col">Checkout date</th>
+            <th scope="col">Return date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for loan in loans %}
+            <tr>
+              <td>{{ loan.equipment_name }}</td>
+              <td>{{ loan.asset_id }}</td>
+              <td><time datetime="{{ loan.checkout_date }}">{{ loan.checkout_date }}</time></td>
+              {# Only a returned loan shows a return date; active loans show the due date. #}
+              {% if loan.status == 'returned' and loan.actual_return_date %}
+                <td><time datetime="{{ loan.actual_return_date }}">{{ loan.actual_return_date }}</time></td>
+              {% else %}
+                <td>Not yet returned (due <time datetime="{{ loan.due_date }}">{{ loan.due_date }}</time>)</td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>You have not borrowed any equipment yet.</p>
+    {% endif %}
+    <a class="button button-secondary" href="{{ url_for('student.student_home') }}">Back to student home</a>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,104 @@
+<!--
+Module Name: student_home.html
+Description:
+    Student landing page for CampusGear. Provides links to private records
+    (Requirement 6), reservation management (Requirements 10 and 15), active
+    loan due dates (Requirement 16), borrowing history (Requirement 26), and
+    the equipment catalog. These cards
+    form the student's navigation menu (Requirement 7).
+Inputs:
+    The authenticated student supplied as user by presentation/student.py.
+    The template uses user.name for the greeting and user.id for the records link.
+Outputs:
+    A student greeting and five navigation cards with distinct destinations.
+Implementation Authors:
+    Zema Samuel: original student home template.
+    Jake Crawford and John Pannell: equipment due dates link.
+    Karim Lakhani and Ahmed Gharib: borrowing history link.
+Creation Date:
+    November 7, 2026: original template.
+Revisions:
+    November 19, 2026: Jake Crawford and John Pannell added the Requirement 16
+    due dates link with substantial ChatGPT Pro-6 code-drafting assistance.
+    November 22, 2026: combined both branches' navigation cards and standardized
+    the documentation with OpenAI Codex assistance.
+    November 22, 2026: Karim Lakhani and Ahmed Gharib added the Requirement 26
+    borrowing history link with Claude (Anthropic) assistance.
+Review Status:
+    Pranav Reddy and Cameren Green reviewed the original Requirement 7 menu changes.
+    The integrated template and revised documentation await team review.
+Documentation Attribution:
+    Combined prologue: OpenAI Codex-assisted.
+External Sources / AI Attribution:
+    Requirement 7 menu changes were drafted with OpenAI Codex. The due dates
+    addition credits ChatGPT Pro-6. Integration and documentation revisions
+    were assisted by OpenAI Codex. Uses HTML, Jinja2, and Flask url_for().
+Code Origin:
+    Combined Sprint 1 and Sprint 2 template changes for EECS 581 Project 3.
+Preconditions:
+    The student_home route authorizes the signed-in student and supplies user.
+    base.html and the merged student routes are available to the application.
+Postconditions:
+    Each card links to its labeled destination. The records link uses the
+    signed-in student's ID; destination routes enforce access restrictions.
+Errors:
+    Jinja2 autoescaping protects interpolated values. Missing route endpoints
+    cause URL-building errors and must be resolved before integration is complete.
+-->
+{% extends "base.html" %}
+{% block title %}Student Interface{% endblock %}
+{% block content %}
+{# Identify the signed-in student using the account supplied by the route. #}
+<section class="page-header">
+  <div class="shell">
+    <span class="eyebrow">CampusGear / Student</span>
+    <h1>Student Interface</h1>
+    <p>Signed in as {{ user.name }}.</p>
+  </div>
+</section>
+<section class="section">
+  <div class="shell">
+    <div class="feature-grid">
+      {# Open the student's private reservation and loan records. #}
+      <a class="feature-card" href="{{ url_for('student.student_records', student_id=user.id) }}">
+        <span class="feature-icon" aria-hidden="true">01</span>
+        <h3>My reservations &amp; loans</h3>
+        <p>See the equipment you have reserved or borrowed.</p>
+        <span class="feature-link">Open my records <span aria-hidden="true">&rarr;</span></span>
+      </a>
+
+      {# Open the reservation list, where eligible reservations can be cancelled. #}
+      <a class="feature-card" href="{{ url_for('student.student_reservations') }}">
+        <span class="feature-icon" aria-hidden="true">02</span>
+        <h3>My reservations</h3>
+        <p>View and cancel your upcoming equipment reservations.</p>
+        <span class="feature-link">View reservations <span aria-hidden="true">&rarr;</span></span>
+      </a>
+
+      {# Open the due dates page for the signed-in student's active loans. #}
+      <a class="feature-card" href="{{ url_for('student.active_loans') }}">
+        <span class="feature-icon" aria-hidden="true">03</span>
+        <h3>Equipment due dates</h3>
+        <p>See when your checked-out equipment is due.</p>
+        <span class="feature-link">View due dates <span aria-hidden="true">&rarr;</span></span>
+      </a>
+
+      {# Open the full list of past and current loans (Requirement 26). #}
+      <a class="feature-card" href="{{ url_for('student.borrowing_history') }}">
+        <span class="feature-icon" aria-hidden="true">04</span>
+        <h3>Borrowing history</h3>
+        <p>See everything you have borrowed and when it was returned.</p>
+        <span class="feature-link">View history <span aria-hidden="true">&rarr;</span></span>
+      </a>
+
+      {# Open the shared catalog to browse equipment and start a reservation. #}
+      <a class="feature-card" href="{{ url_for('site.catalog') }}">
+        <span class="feature-icon" aria-hidden="true">05</span>
+        <h3>Browse equipment to borrow</h3>
+        <p>Browse the equipment that is available.</p>
+        <span class="feature-link">View catalog <span aria-hidden="true">&rarr;</span></span>
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}
